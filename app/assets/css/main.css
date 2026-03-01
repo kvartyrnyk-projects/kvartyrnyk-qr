@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+  --color-annotation: #4f4f4f;
+
+  --font-primary: "JetBrains Mono", monospace;
+  --font-secondary: "Inter", sans-serif;
+}
+
+.dark {
+  --color-background: #1a1a1a;
+  --color-foreground: #f0f0f0;
+  --color-annotation: #aca8a8;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-primary);
+}
