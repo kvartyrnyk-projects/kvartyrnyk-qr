@@ -6,8 +6,7 @@
   --color-foreground: #000000;
   --color-annotation: #4f4f4f;
 
-  --font-primary: "JetBrains Mono", monospace;
-  --font-secondary: "Inter", sans-serif;
+  --font-primary: "Inter", sans-serif;
 }
 
 .dark {
