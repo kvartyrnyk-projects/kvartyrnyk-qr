@@ -11,7 +11,7 @@ const errorMessage = encodeURIComponent("Невірний QR-код");
  * 
  * @param data - The scanned QR code data to be validated.
  */
-export const onError = async (error: string) => {
+export const onQrError = async (error: string) => {
   const encodedError = encodeURIComponent(error);
   await navigateTo(`/error?message=${encodedError}`);
 };
@@ -22,11 +22,11 @@ export const onError = async (error: string) => {
  * 
  * @param data - The scanned QR code data to be validated.
  */
-export const validate = async (data: string) => {
+export const validateQr = async (data: string) => {
   if (uuidRegex.test(data)) {
     await navigateTo(`/validate/${data}`);
   } else {
-    await onError(errorMessage);
+    await onQrError(errorMessage);
   }
 };
 
@@ -35,7 +35,7 @@ export const validate = async (data: string) => {
  * 
  * @param data - The scanned QR code data to be sent back to the Telegram bot.
  */
-export const sendBack = (data: string) => {
+export const sendBackQr = (data: string) => {
     sendData(data);
     miniApp.close();
 }

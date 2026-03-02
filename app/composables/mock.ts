@@ -1,4 +1,3 @@
-import { onMounted } from "vue";
 import { mockTelegramEnv, emitEvent } from "@tma.js/sdk-vue";
 
 const tgWebAppThemeParams = {
