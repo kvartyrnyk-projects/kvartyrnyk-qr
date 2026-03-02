@@ -18,15 +18,14 @@ const tgWebAppThemeParams = {
 } as const;
 
 /**
- * Mocks the Telegram Web App API when `process.env.NODE_ENV`
- * is not equal to `"production"`.
+ * Mocks the Telegram Web App API when app is ran in development mode.
  *
  * This is a REQUIREMENT for development, as the Telegram Web App API
  * is only available when the app is ran inside Telegram.
  */
 export const useMockTelegram = () => {
   onMounted(() => {
-    if (!import.meta.dev) {
+    if (!import.meta.env.DEV) {
       return;
     }
 

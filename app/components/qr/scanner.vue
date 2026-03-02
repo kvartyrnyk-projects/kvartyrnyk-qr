@@ -37,7 +37,13 @@ onMounted(openScanner);
   <div class="flex flex-col items-center justify-center min-h-screen gap-6 p-4">
     <div v-if="scannedCode" class="w-full max-w-md space-y-4">
       <p class="text-sm text-annotation">Результат сканування:</p>
-      <p class="break-all font-mono text-foreground">
+      <img
+        v-if="scannedCode.startsWith('data:image')"
+        :src="scannedCode"
+        alt="Scanned QR code result"
+        class="w-full h-auto object-contain"
+      >
+      <p v-else class="text-xl break-all font-mono text-foreground">
         {{ scannedCode }}
       </p>
       <div class="flex flex-row gap-4">
@@ -58,9 +64,7 @@ onMounted(openScanner);
     </div>
 
     <div v-else class="text-center space-y-4">
-      <p v-if="isScanning" class="text-annotation">
-        Відкриваю камеру...
-      </p>
+      <p v-if="isScanning" class="text-annotation">Відкриваю камеру...</p>
       <UButton v-else block @click="openScanner">Сканувати QR код</UButton>
     </div>
   </div>
