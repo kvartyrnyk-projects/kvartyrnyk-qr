@@ -1,3 +1,6 @@
 <template>
-  <QrScanner @scanned="validateQr($event)" @error="onQrError($event)" />
+  <QrScanner
+    @scanned="validateQr($event)"
+    @error="onQrError($event)"
+  />
 </template>

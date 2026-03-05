@@ -5,37 +5,31 @@ export const uuidRegex =
 const errorMessage = encodeURIComponent("Невірний QR-код");
 
 /**
- * Sets up event listeners for handling QR code scanning results and errors.
- * On successful scan, redirects to a validation page with the scanned data.
- * On error, redirects to an error page with the error message.
- * 
- * @param data - The scanned QR code data to be validated.
+ * Redirects to the error page with the given message.
+ * Optionally carries the event ID so the error page can offer a re-scan.
  */
 export const onQrError = async (error: string) => {
-  const encodedError = encodeURIComponent(error);
-  await navigateTo(`/error?message=${encodedError}`);
+  const params = new URLSearchParams({ message: error });
+  await navigateTo(`/error?${params.toString()}`);
 };
 
 /**
- * Initializes event listeners for QR code scanning results and errors.
- * Should be called once when the application starts.
- * 
- * @param data - The scanned QR code data to be validated.
+ * Validates the scanned QR code format and navigates to the validation page.
+ * Requires the current event ID to build the correct route.
  */
 export const validateQr = async (data: string) => {
-  if (uuidRegex.test(data)) {
-    await navigateTo(`/validate/${data}`);
-  } else {
-    await onQrError(errorMessage);
+  if (!uuidRegex.test(data)) {
+    return onQrError(decodeURIComponent(errorMessage));
   }
+  await navigateTo(`/validate/qr/${data}`);
 };
 
 /**
  * Send back the user data to the Telegram bot.
- * 
+ *
  * @param data - The scanned QR code data to be sent back to the Telegram bot.
  */
 export const sendBackQr = (data: string) => {
-    sendData(data);
-    miniApp.close();
-}
+  sendData(data);
+  miniApp.close();
+};
