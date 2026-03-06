@@ -13,21 +13,21 @@ export interface ValidationResponse {
   message: string;
 }
 
-export type OKValidationResponse = ValidationResponse & {
-  status: "OK";
+export type SuccesfulValidationResponse = ValidationResponse & {
   fullName: string;
   event: EventDetails;
   visitedEvents: number;
   friendsCount: number;
+  paymentFileId?: string | null;
 };
 
-export type AlreadyScannedResponse = ValidationResponse & {
+export type OKValidationResponse = SuccesfulValidationResponse & {
+  status: "OK";
+};
+
+export type AlreadyScannedResponse = SuccesfulValidationResponse & {
   status: "ALREADY_SCANNED";
-  fullName: string;
-  event: EventDetails;
-  visitedEvents: number;
   scannedAt: string;
-  friendsCount: number;
 };
 
 export type NotOpenResponse = ValidationResponse & {
