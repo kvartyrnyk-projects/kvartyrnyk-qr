@@ -1,8 +1,6 @@
 import { isValid, parse } from "@tma.js/init-data-node"
-import assert from "node:assert";
-
-const botToken = process.env.BOT_TOKEN;
-assert.ok(botToken, "BOT_TOKEN environment variable is required");
+import type { AuthContext } from "~/types/telegram";
+import { botToken } from "~~/server/utils/constants";
 
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname;

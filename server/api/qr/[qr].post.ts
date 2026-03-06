@@ -10,6 +10,27 @@ import type {
   ErrorResponse,
   NotOpenResponse,
 } from "~/types/validation";
+import type { EventStatus } from "~/types/event";
+
+interface RegistrationRow {
+  id: number;
+  user_id: number;
+  event_id: number;
+  checked_in_at: string | null;
+  full_name: string;
+  user_role: string;
+  username: string | null;
+  event_name: string;
+  event_date: string;
+  eid: number;
+  event_status: EventStatus;
+  friends_count: number;
+  payment_file_id: string | null;
+}
+
+interface VisitedCountRow {
+  count: number;
+}
 
 export default defineEventHandler(
   async (event): Promise<FullValidationResponse> => {
@@ -25,7 +46,7 @@ export default defineEventHandler(
     const scannedBy: number | null = event.context.auth?.dbUser?.id ?? null;
 
     // Look up registration by QR token with user and event details
-    const [registration] = await sql`
+    const [registration] = await sql<RegistrationRow[]>`
       SELECT
         r.id,
         r.user_id,
@@ -38,7 +59,8 @@ export default defineEventHandler(
         e.starts_at AS event_date,
         e.id    AS eid,
         e.status AS event_status,
-        (SELECT COUNT(*)::int FROM friends f WHERE f.registration_id = r.id) AS friends_count
+        (SELECT COUNT(*)::int FROM friends f WHERE f.registration_id = r.id) AS friends_count,
+        (SELECT p.file_id FROM payments p WHERE p.registration_id = r.id ORDER BY p.created_at DESC LIMIT 1) AS payment_file_id
       FROM registrations r
       JOIN users  u ON r.user_id  = u.id
       JOIN events e ON r.event_id = e.id
@@ -61,7 +83,7 @@ export default defineEventHandler(
         status: "NOT_OPEN",
         message: "⚠️ Захід ще не відкритий для сканування",
         event: {
-          id: registration.eid,
+          id: registration.eid.toString(),
           name: registration.event_name,
           date: registration.event_date,
           status: registration.event_status,
@@ -70,7 +92,7 @@ export default defineEventHandler(
     }
 
     // Count previously visited events for this user
-    const [previousRegistrations] = await sql`
+    const [previousRegistrations] = await sql<VisitedCountRow[]>`
       SELECT COUNT(DISTINCT event_id)::int AS count
       FROM registrations
       WHERE user_id = ${registration.user_id} AND checked_in_at IS NOT NULL
@@ -78,7 +100,7 @@ export default defineEventHandler(
     const visitedEvents = Number(previousRegistrations?.count ?? 0);
 
     const eventDetails = {
-      id: registration.eid,
+      id: registration.eid.toString(),
       name: registration.event_name,
       date: registration.event_date,
     };
@@ -110,6 +132,7 @@ export default defineEventHandler(
         visitedEvents,
         scannedAt: String(registration.checked_in_at),
         friendsCount,
+        paymentFileId: registration.payment_file_id ?? null,
       } satisfies AlreadyScannedResponse;
     }
 
@@ -132,6 +155,7 @@ export default defineEventHandler(
       event: eventDetails,
       visitedEvents: visitedEvents + 1,
       friendsCount,
+      paymentFileId: registration.payment_file_id ?? null,
     } satisfies OKValidationResponse;
   },
 );

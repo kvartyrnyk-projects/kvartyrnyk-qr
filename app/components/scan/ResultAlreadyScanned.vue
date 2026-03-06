@@ -24,5 +24,15 @@ defineProps<{ data: AlreadyScannedResponse }>();
       </p>
       <p>🎟️ Відвідано подій: {{ data.visitedEvents }}</p>
     </div>
+    <div v-if="data.paymentFileId" class="pt-2">
+      <a
+        :href="`/api/file/${data.paymentFileId}`"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-annotation text-sm mb-1"
+      >
+        🧾 Чек оплати
+      </a>
+    </div>
   </div>
 </template>
