@@ -21,8 +21,8 @@ const fileUrl = computed(() => {
       v-if="isImage(mimetype)"
       :src="fileUrl"
       alt="Чек оплати"
-      class="mt-2 max-h-256 max-w-full w-auto rounded-xl border border-default object-contain"
-    >
+      class="mt-2 max-h-256 max-w-full w-auto rounded-xl border border-gray-200 dark:border-neutral-700 object-contain"
+    />
     <ViewerPdf v-else-if="isPdf(mimetype)" :url="fileUrl" />
     <NuxtLink
       v-else
@@ -33,8 +33,12 @@ const fileUrl = computed(() => {
       Відкрити файл
     </NuxtLink>
     <template #fallback>
-      <p class="mt-2 text-sm text-muted text-center">Завантаження чека...</p>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 text-center">
+        Завантаження чека...
+      </p>
     </template>
   </ClientOnly>
-  <p v-else class="mt-2 text-sm text-muted text-center">Файл чеку не знайдено</p>
+  <p v-else class="mt-2 text-sm text-gray-600 dark:text-gray-400 text-center">
+    Файл чеку не знайдено
+  </p>
 </template>

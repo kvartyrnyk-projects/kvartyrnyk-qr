@@ -13,7 +13,7 @@ const { data, status, error } =
 
     <div
       v-if="status === 'idle' || status === 'pending'"
-      class="text-muted text-sm"
+      class="text-gray-600 dark:text-gray-400 text-sm"
     >
       Завантаження...
     </div>

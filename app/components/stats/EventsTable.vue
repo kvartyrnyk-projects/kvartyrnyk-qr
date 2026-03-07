@@ -34,7 +34,9 @@ const statusLabel: Record<EventSummaryRow["status"], string> = {
   <div class="w-full overflow-x-auto">
     <table class="w-full text-sm">
       <thead>
-        <tr class="border-b border-default text-left text-muted">
+        <tr
+          class="border-b border-gray-200 dark:border-neutral-700 text-left text-gray-600 dark:text-gray-400"
+        >
           <th class="py-2 pr-4 font-medium">Назва</th>
           <th class="py-2 pr-4 font-medium">Дата</th>
           <th class="py-2 pr-4 font-medium">Статус</th>
@@ -48,14 +50,14 @@ const statusLabel: Record<EventSummaryRow["status"], string> = {
         <tr
           v-for="ev in events"
           :key="ev.id"
-          class="border-b border-default last:border-0"
+          class="border-b border-gray-200 dark:border-neutral-700 last:border-0"
         >
           <td class="py-3 pr-4 font-medium">
             <NuxtLink :to="`/stats/${ev.id}`" class="hover:underline">
               {{ ev.name }}
             </NuxtLink>
           </td>
-          <td class="py-3 pr-4 text-muted">
+          <td class="py-3 pr-4 text-gray-600 dark:text-gray-400">
             {{ new Date(ev.startsAt).toLocaleDateString("uk-UA") }}
           </td>
           <td class="py-3 pr-4">
@@ -81,7 +83,12 @@ const statusLabel: Record<EventSummaryRow["status"], string> = {
           </td>
         </tr>
         <tr v-if="!events.length">
-          <td colspan="7" class="py-6 text-center text-muted">Немає подій</td>
+          <td
+            colspan="7"
+            class="py-6 text-center text-gray-600 dark:text-gray-400"
+          >
+            Немає подій
+          </td>
         </tr>
       </tbody>
     </table>

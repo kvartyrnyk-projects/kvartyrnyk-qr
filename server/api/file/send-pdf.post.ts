@@ -1,39 +1,51 @@
-// server/api/send-pdf.post.ts
 import { botToken } from "~~/server/utils/constants";
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
-  const { pdfBase64, filename, chatId } = body;
+  const parts = await readMultipartFormData(event);
+  if (!parts)
+    throw createError({ statusCode: 400, message: "Missing multipart data" });
 
-  if (!pdfBase64 || !chatId) {
-    throw createError({ statusCode: 400, message: "Missing required data" });
+  const get = (name: string) => parts.find((p) => p.name === name);
+
+  const chatIdPart = get("chatId");
+  const filenamePart = get("filename");
+  const filePart = get("file");
+
+  if (!chatIdPart || !filePart) {
+    throw createError({ statusCode: 400, message: "Missing required fields" });
   }
 
+  const chatId = chatIdPart.data.toString();
+  const filename = filenamePart?.data.toString() ?? "document.pdf";
+
   try {
-    // 1. Strip the data URL prefix to get the raw base64 string
-    const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
-    
-    // 2. Convert to a Buffer
-    const buffer = Buffer.from(base64Data, "base64");
-
-    // 3. Build FormData to send as a Telegram document
     const formData = new FormData();
-    formData.append("chat_id", chatId.toString());
-    
-    // Convert Buffer to a Blob for fetch
-    const fileBlob = new Blob([buffer], { type: 'application/pdf' });
-    formData.append("document", fileBlob, filename || "document.pdf");
-
-    // 4. Fire it off to the Telegram API
-    await $fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-      method: "POST",
-      body: formData,
+    formData.append("chat_id", chatId);
+    const fileBlob = new Blob([new Uint8Array(filePart.data)], {
+      type: "application/pdf",
     });
+    formData.append("document", fileBlob, filename);
+
+    const res = await fetch(
+      `https://api.telegram.org/bot${botToken}/sendDocument`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Telegram API rejected the file: ${err}`);
+    }
 
     return { success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Telegram API Error:", message);
-    throw createError({ statusCode: 500, message: "Failed to send to Telegram" });
+    throw createError({
+      statusCode: 500,
+      message: "Failed to send to Telegram",
+    });
   }
 });

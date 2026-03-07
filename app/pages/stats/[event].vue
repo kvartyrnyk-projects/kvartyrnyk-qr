@@ -2,6 +2,7 @@
 import type { StatsEventResponse } from "~/types/stats";
 
 const printRef = ref<HTMLElement | null>(null);
+const isGeneratingPdf = ref(false);
 
 const route = useRoute();
 const eventId = computed(() => route.params.event as string);
@@ -13,10 +14,7 @@ const { data, status, error } = useClientFetch<StatsEventResponse>(
 
 <template>
   <div ref="printRef" class="flex flex-col gap-6 p-4 w-full max-w-3xl mx-auto">
-    <div
-      class="print:hidden flex items-center gap-2"
-      data-html2canvas-ignore="true"
-    >
+    <div :class="{ hidden: isGeneratingPdf }" class="flex items-center gap-2">
       <UButton
         to="/stats"
         icon="i-lucide-arrow-left"
@@ -28,7 +26,7 @@ const { data, status, error } = useClientFetch<StatsEventResponse>(
 
     <div
       v-if="status === 'idle' || status === 'pending'"
-      class="text-muted text-sm"
+      class="text-gray-600 dark:text-gray-400 text-sm"
     >
       Завантаження...
     </div>
@@ -41,16 +39,24 @@ const { data, status, error } = useClientFetch<StatsEventResponse>(
     </div>
 
     <template v-else-if="data">
-      <StatsEventHeader :event="data.event" :print-section="printRef" />
+      <StatsEventHeader
+        v-model:generating="isGeneratingPdf"
+        :event="data.event"
+        :print-section="printRef"
+      />
 
-      <div class="print:hidden" data-html2canvas-ignore="true">
+      <div :class="{ hidden: isGeneratingPdf }">
         <h2 class="font-semibold mb-3">
           Відвідувачі ({{ data.visitors.length }})
         </h2>
         <StatsVisitorAccordion :visitors="data.visitors" />
       </div>
 
-      <StatsPrintList :visitors="data.visitors" :event-name="data.event.name" />
+      <StatsPrintList
+        :visitors="data.visitors"
+        :event-name="data.event.name"
+        :is-generating-pdf="isGeneratingPdf"
+      />
     </template>
   </div>
 </template>

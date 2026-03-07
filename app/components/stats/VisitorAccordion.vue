@@ -31,7 +31,7 @@ const visitorLabel = (v: VisitorRow) =>
 </script>
 
 <template>
-  <div class="print:hidden w-full space-y-2" data-html2canvas-ignore="true">
+  <div class="w-full space-y-2">
     <!--
       One UAccordion per visitor with a fixed slot name "row".
       This avoids the Vue 3 compile-time limitation on v-for + dynamic slots.
@@ -74,7 +74,7 @@ const visitorLabel = (v: VisitorRow) =>
       <template #row>
         <div class="space-y-3 pb-2">
           <!-- Meta -->
-          <div class="text-sm text-muted space-y-1">
+          <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
             <p v-if="v.username">@{{ v.username }}</p>
             <p v-if="v.registeredAt">
               Зареєстровано:
@@ -91,7 +91,9 @@ const visitorLabel = (v: VisitorRow) =>
             <p class="text-sm font-medium mb-1">
               👥 Друзі ({{ v.friends.length }})
             </p>
-            <ul class="text-sm text-muted space-y-0.5 list-disc list-inside">
+            <ul
+              class="text-sm text-gray-600 dark:text-gray-400 space-y-0.5 list-disc list-inside"
+            >
               <li v-for="(f, fi) in v.friends" :key="fi">
                 {{ f.name
                 }}<span v-if="f.username" class="ml-1 opacity-60"
@@ -113,14 +115,18 @@ const visitorLabel = (v: VisitorRow) =>
                 variant="soft"
                 size="xs"
               />
-              <span class="text-sm text-muted">{{ v.payment.amount }} UAH</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400"
+                >{{ v.payment.amount }} UAH</span
+              >
             </div>
             <ViewerPaymentReceipt
               :file-id="v.payment.fileId"
               :mimetype="v.payment.mimetype"
             />
           </div>
-          <p v-else class="text-sm text-muted">Оплата не завантажена</p>
+          <p v-else class="text-sm text-gray-600 dark:text-gray-400">
+            Оплата не завантажена
+          </p>
         </div>
       </template>
     </UAccordion>

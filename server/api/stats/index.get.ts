@@ -41,13 +41,14 @@ export default defineEventHandler(
         e.max_slots,
         COUNT(r.id)::int                                                          AS registrations_count,
         COUNT(r.checked_in_at)::int                                               AS checked_in_count,
-        COUNT(p.id) FILTER (WHERE p.status = 'CONFIRMED')::int                    AS confirmed_payments
+        COUNT(*) FILTER (WHERE p.status = 'CONFIRMED')::int                    AS confirmed_payments
       FROM events e
       LEFT JOIN registrations r ON r.event_id = e.id
       LEFT JOIN LATERAL (
         SELECT
           file_id,
-          mimetype
+          mimetype,
+          status
         FROM payments
         WHERE payments.registration_id = r.id
         ORDER BY created_at DESC
