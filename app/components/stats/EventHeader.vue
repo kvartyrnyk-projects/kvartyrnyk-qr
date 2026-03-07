@@ -1,9 +1,41 @@
 <script setup lang="ts">
 import type { EventDetail } from "~/types/stats";
+import html2pdf from "html2pdf.js";
 
-defineProps<{ event: EventDetail }>();
+const props = defineProps<{ event: EventDetail }>();
 
-const printPage = () => globalThis.print();
+const printSection = ref<HTMLElement | null>(null);
+const isGeneratingPDF = ref(false);
+
+const printPage = async () => {
+  if (!globalThis.window || !printSection.value) return;
+
+  try {
+    // 1. Hide the button
+    isGeneratingPDF.value = true;
+    
+    // 2. Wait for Vue to update the DOM so the button is actually gone
+    await nextTick(); 
+
+    const options = {
+      margin:       10,
+      filename:     `Event_Stats_${props.event.name.replaceAll(/\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    } as const;
+
+    // 3. Generate the PDF (Wait for the promise to resolve)
+    await html2pdf().set(options).from(printSection.value).save();
+    
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    alert(`Failed to generate PDF: ${message}`);
+  } finally {
+    // 4. Bring the button back, no matter what happens
+    isGeneratingPDF.value = false; 
+  }
+};
 </script>
 
 <template>
@@ -25,6 +57,7 @@ const printPage = () => globalThis.print();
           variant="outline"
           size="sm"
           class="print:hidden shrink-0"
+          :class="{ 'hidden': isGeneratingPDF }"
           data-html2canvas-ignore="true"
           @click="printPage"
         />
