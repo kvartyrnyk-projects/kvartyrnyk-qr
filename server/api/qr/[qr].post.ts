@@ -26,6 +26,7 @@ interface RegistrationRow {
   event_status: EventStatus;
   friends_count: number;
   payment_file_id: string | null;
+  payment_mimetype: string | null;
 }
 
 interface VisitedCountRow {
@@ -60,10 +61,12 @@ export default defineEventHandler(
         e.id    AS eid,
         e.status AS event_status,
         (SELECT COUNT(*)::int FROM friends f WHERE f.registration_id = r.id) AS friends_count,
-        (SELECT p.file_id FROM payments p WHERE p.registration_id = r.id ORDER BY p.created_at DESC LIMIT 1) AS payment_file_id
+        p.file_id AS payment_file_id,
+        p.mimetype AS payment_mimetype
       FROM registrations r
       JOIN users  u ON r.user_id  = u.id
       JOIN events e ON r.event_id = e.id
+      LEFT JOIN payments p ON p.registration_id = r.id
       WHERE r.qr_token = ${qrToken}
     `;
 
@@ -122,6 +125,13 @@ export default defineEventHandler(
       } satisfies BannedResponse;
     }
 
+    const paymentFile = registration.payment_file_id
+      ? {
+          fileId: registration.payment_file_id,
+          mimetype: registration.payment_mimetype ?? "application/octet-stream",
+        }
+      : null;
+
     // Already checked in
     if (registration.checked_in_at) {
       return {
@@ -132,7 +142,7 @@ export default defineEventHandler(
         visitedEvents,
         scannedAt: String(registration.checked_in_at),
         friendsCount,
-        paymentFileId: registration.payment_file_id ?? null,
+        paymentFile,
       } satisfies AlreadyScannedResponse;
     }
 
@@ -155,7 +165,7 @@ export default defineEventHandler(
       event: eventDetails,
       visitedEvents: visitedEvents + 1,
       friendsCount,
-      paymentFileId: registration.payment_file_id ?? null,
+      paymentFile,
     } satisfies OKValidationResponse;
   },
 );

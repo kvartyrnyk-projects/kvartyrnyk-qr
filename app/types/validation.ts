@@ -18,7 +18,10 @@ export type SuccesfulValidationResponse = ValidationResponse & {
   event: EventDetails;
   visitedEvents: number;
   friendsCount: number;
-  paymentFileId?: string | null;
+  paymentFile?: {
+    fileId: string;
+    mimetype: string;
+  } | null;
 };
 
 export type OKValidationResponse = SuccesfulValidationResponse & {
