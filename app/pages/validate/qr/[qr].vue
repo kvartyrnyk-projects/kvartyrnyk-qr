@@ -34,7 +34,10 @@ const { openScanner } = useScanner(validateFn, (err) => onQrError(err));
   >
     <h1 class="text-lg text-annotation">Результат сканування</h1>
 
-    <div v-if="status === 'pending'" class="text-annotation">
+    <div
+      v-if="status === 'idle' || status === 'pending'"
+      class="text-annotation"
+    >
       Перевіряю QR-код...
     </div>
     <template v-else-if="data">
