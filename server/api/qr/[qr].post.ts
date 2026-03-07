@@ -66,7 +66,15 @@ export default defineEventHandler(
       FROM registrations r
       JOIN users  u ON r.user_id  = u.id
       JOIN events e ON r.event_id = e.id
-      LEFT JOIN payments p ON p.registration_id = r.id
+      LEFT JOIN LATERAL (
+        SELECT
+          file_id,
+          mimetype
+        FROM payments
+        WHERE payments.registration_id = r.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) p ON TRUE
       WHERE r.qr_token = ${qrToken}
     `;
 
@@ -140,7 +148,7 @@ export default defineEventHandler(
         fullName: registration.full_name,
         event: eventDetails,
         visitedEvents,
-        scannedAt: String(registration.checked_in_at),
+        scannedAt: registration.checked_in_at,
         friendsCount,
         paymentFile,
       } satisfies AlreadyScannedResponse;

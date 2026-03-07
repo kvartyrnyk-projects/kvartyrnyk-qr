@@ -44,7 +44,15 @@ export default defineEventHandler(
         COUNT(p.id) FILTER (WHERE p.status = 'CONFIRMED')::int                    AS confirmed_payments
       FROM events e
       LEFT JOIN registrations r ON r.event_id = e.id
-      LEFT JOIN payments      p ON p.registration_id = r.id
+      LEFT JOIN LATERAL (
+        SELECT
+          file_id,
+          mimetype
+        FROM payments
+        WHERE payments.registration_id = r.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) p ON TRUE
       GROUP BY e.id
       ORDER BY e.starts_at DESC
     `;
@@ -58,7 +66,7 @@ export default defineEventHandler(
           id: r.id,
           name: r.name,
           status: r.status as EventSummaryRow["status"],
-          startsAt: String(r.starts_at),
+          startsAt: r.starts_at.toISOString(),
           maxSlots: r.max_slots,
           registrationsCount: r.registrations_count,
           checkedInCount: r.checked_in_count,

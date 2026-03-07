@@ -1,5 +1,6 @@
 import { isValid, parse } from "@tma.js/init-data-node";
 import type { AuthContext } from "~/types/telegram";
+import { sql } from "~~/server/utils/db";
 import { botToken } from "~~/server/utils/constants";
 
 export default defineEventHandler(async (event) => {

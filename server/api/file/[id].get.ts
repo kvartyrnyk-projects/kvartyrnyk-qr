@@ -12,8 +12,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: "File not found" });
   }
 
-  const id = decodeURIComponent(rawId);
-  const apiUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${id}`;
+  const apiUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${rawId}`;
   const res = await $fetch<TelegramGetFileResponse>(apiUrl);
 
   if (!res.ok || !res.result?.file_path) {
@@ -21,7 +20,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const filePath = res.result.file_path;
-  const fileExt = filePath.split(".").pop();
+  const fileName = filePath.split("/").pop() ?? "file.bin";
+  const fileExt = fileName.split(".").pop();
   const mimetype =
     (fileExt ? mime.getType(fileExt) : null) ?? "application/octet-stream";
 
@@ -43,14 +43,13 @@ export default defineEventHandler(async (event) => {
       setResponseHeader(
         outputEvent,
         "Content-Disposition",
-        `attachment; filename="${filePath}"`,
+        `attachment; filename="${fileName}"`,
       );
 
       // Tell the client that chunking is supported
       setResponseHeader(outputEvent, "Accept-Ranges", "bytes");
 
       // 4. INJECT CORS HEADERS FOR PDF.JS
-      setResponseHeader(outputEvent, "Access-Control-Allow-Origin", "*");
       setResponseHeader(
         outputEvent,
         "Access-Control-Allow-Methods",

@@ -27,9 +27,7 @@ const pdfCanvas = ref<HTMLCanvasElement | null>(null);
 watchEffect(() => {
   const url = unref(props.url);
   if (!url || !pdfCanvas.value) return;
-  renderPdf(url, pdfCanvas.value).catch((err) => {
-    alert(`Помилка при завантаженні PDF: ${err.message}`);
-  });
+  renderPdf(url, pdfCanvas.value);
 });
 </script>
 

@@ -13,7 +13,7 @@ export interface ValidationResponse {
   message: string;
 }
 
-export type SuccesfulValidationResponse = ValidationResponse & {
+type SuccessfulValidationResponse = ValidationResponse & {
   fullName: string;
   event: EventDetails;
   visitedEvents: number;
@@ -24,11 +24,11 @@ export type SuccesfulValidationResponse = ValidationResponse & {
   } | null;
 };
 
-export type OKValidationResponse = SuccesfulValidationResponse & {
+export type OKValidationResponse = SuccessfulValidationResponse & {
   status: "OK";
 };
 
-export type AlreadyScannedResponse = SuccesfulValidationResponse & {
+export type AlreadyScannedResponse = SuccessfulValidationResponse & {
   status: "ALREADY_SCANNED";
   scannedAt: string;
 };
