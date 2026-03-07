@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { init } from "@tma.js/sdk-vue";
 
+if (import.meta.client) {
+  init();
+}
+
 useHead({
   title: "Сканер QR-кодів для Квартирника",
   meta: [
@@ -13,7 +17,6 @@ const route = useRoute();
 
 useMockTelegram();
 useOriginCheck(route.path);
-onMounted(init);
 </script>
 
 <template>
