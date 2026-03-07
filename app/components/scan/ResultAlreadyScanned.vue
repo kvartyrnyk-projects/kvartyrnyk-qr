@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { AlreadyScannedResponse } from "~/types/validation";
 
-defineProps<{ data: AlreadyScannedResponse }>();
+const { data } = defineProps<{ data: AlreadyScannedResponse }>();
+
+const fileId = computed(() => data.paymentFile?.fileId ?? null);
+const mimetype = computed(() => data.paymentFile?.mimetype ?? null);
 </script>
 
 <template>
@@ -24,15 +27,9 @@ defineProps<{ data: AlreadyScannedResponse }>();
       </p>
       <p>🎟️ Відвідано подій: {{ data.visitedEvents }}</p>
     </div>
-    <div v-if="data.paymentFileId" class="pt-2">
-      <a
-        :href="`/api/file/${data.paymentFileId}`"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-annotation text-sm mb-1"
-      >
-        🧾 Чек оплати
-      </a>
-    </div>
+    <ViewerPaymentReceipt
+      :file-id="fileId"
+      :mimetype="mimetype"
+    />
   </div>
 </template>

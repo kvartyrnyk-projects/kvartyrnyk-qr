@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { OKValidationResponse } from "~/types/validation";
 
-defineProps<{ data: OKValidationResponse }>();
+const { data } =  defineProps<{ data: OKValidationResponse }>();
+
+const fileUrl = computed(() => {
+  if (!data.paymentFile) return null;
+  const { fileId } = data.paymentFile;
+  return `/api/file/${encodeURIComponent(fileId)}`;
+});
 </script>
 
 <template>
@@ -21,15 +27,15 @@ defineProps<{ data: OKValidationResponse }>();
       <p>👥 Друзі: {{ data.friendsCount }}</p>
       <p>🎟️ Відвідано подій: {{ data.visitedEvents }}</p>
     </div>
-    <div v-if="data.paymentFileId" class="pt-2">
-      <a
-        :href="`/api/file/${data.paymentFileId}`"
+    <div v-if="fileUrl" class="pt-2">
+      <NuxtLink
+        :href="fileUrl"
         target="_blank"
         rel="noopener noreferrer"
         class="text-annotation text-sm mb-1"
       >
         🧾 Чек оплати
-      </a>
+    </NuxtLink>
     </div>
   </div>
 </template>
