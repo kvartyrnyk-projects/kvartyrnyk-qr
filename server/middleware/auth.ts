@@ -1,10 +1,10 @@
-import { isValid, parse } from "@tma.js/init-data-node"
+import { isValid, parse } from "@tma.js/init-data-node";
 import type { AuthContext } from "~/types/telegram";
 import { botToken } from "~~/server/utils/constants";
 
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname;
-  if (!path.startsWith("/api/")) return;
+  if (!path.startsWith("/api/") || path.startsWith("/api/file")) return;
 
   // Skip auth validation in development — mock user is injected instead
   if (import.meta.dev) {
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
           first_name: "Dev",
           last_name: "User",
           username: "dev_user",
-        },  
+        },
       },
       dbUser: { id: 1, telegram_id: 1, role: "ADMIN", full_name: "Dev User" },
     };
