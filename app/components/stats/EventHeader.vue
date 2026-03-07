@@ -1,9 +1,78 @@
 <script setup lang="ts">
+import { initData } from "@tma.js/sdk-vue";
 import type { EventDetail } from "~/types/stats";
 
-defineProps<{ event: EventDetail }>();
+const { event, printSection } = defineProps<{ 
+  event: EventDetail
+  printSection: HTMLElement | null
+}>();
 
-const printPage = () => globalThis.print();
+const isGeneratingPDF = ref(false);
+
+const printPage = async () => {
+  if (!globalThis.window || !printSection) return;
+
+  // Grab the Telegram WebApp instance
+  
+  const chatId = initData.user()?.id;
+  if (!chatId) {
+    alert("Помилка: Не вдалося знайти ID користувача Telegram.");
+    return;
+  }
+
+  try {
+    isGeneratingPDF.value = true;
+    await nextTick(); 
+    await new Promise(resolve => setTimeout(resolve, 150)); // Give fonts a beat to render
+
+    // Robust dynamic imports to avoid SSR issues
+    const [{ toPng }, { jsPDF }] = await Promise.all([
+      import('html-to-image'),
+      import('jspdf')
+    ]);
+
+    const dataUrl = await toPng(printSection, {
+      quality: 1,
+      pixelRatio: 2,
+      backgroundColor: '#ffffff',
+    });
+
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const imgProps = pdf.getImageProperties(dataUrl);
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+    // 1. Export the PDF as a Base64 Data URL instead of a Blob
+    const pdfBase64 = pdf.output('datauristring');
+    const filename = `Event_Stats_${event.name.replaceAll(/\s+/g, '_')}.pdf`;
+
+    // 2. Send it to our Nuxt backend
+    await $fetch('/api/file/send-pdf', {
+      method: 'POST',
+      body: {
+        chatId,
+        filename,
+        pdfBase64
+      }
+    });
+
+    // 3. Give the user satisfying native feedback
+    alert("✅ PDF успішно надіслано у ваш чат!");
+    
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    alert(`❌ Помилка: ${message}`);
+  } finally {
+    isGeneratingPDF.value = false; 
+  }
+};
 </script>
 
 <template>
@@ -25,6 +94,7 @@ const printPage = () => globalThis.print();
           variant="outline"
           size="sm"
           class="print:hidden shrink-0"
+          :class="{ 'hidden': isGeneratingPDF }"
           data-html2canvas-ignore="true"
           @click="printPage"
         />

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { StatsEventResponse } from "~/types/stats";
 
+const printRef = ref<HTMLElement | null>(null);
+
 const route = useRoute();
 const eventId = computed(() => route.params.event as string);
 
@@ -10,8 +12,11 @@ const { data, status, error } = useClientFetch<StatsEventResponse>(
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 p-4 w-full max-w-3xl mx-auto">
-    <div class="print:hidden flex items-center gap-2" data-html2canvas-ignore="true">
+  <div ref="printRef" class="flex flex-col gap-6 p-4 w-full max-w-3xl mx-auto">
+    <div
+      class="print:hidden flex items-center gap-2"
+      data-html2canvas-ignore="true"
+    >
       <UButton
         to="/stats"
         icon="i-lucide-arrow-left"
@@ -36,7 +41,7 @@ const { data, status, error } = useClientFetch<StatsEventResponse>(
     </div>
 
     <template v-else-if="data">
-      <StatsEventHeader :event="data.event" />
+      <StatsEventHeader :event="data.event" :print-section="printRef" />
 
       <div class="print:hidden" data-html2canvas-ignore="true">
         <h2 class="font-semibold mb-3">
