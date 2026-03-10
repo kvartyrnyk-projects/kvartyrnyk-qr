@@ -37,6 +37,7 @@ export interface EventSummaryRow {
   registrationsCount: number;
   checkedInCount: number;
   confirmedPayments: number;
+  friendsCount: number;
 }
 
 export interface StatsIndexResponse {
@@ -57,6 +58,8 @@ export interface EventDetail {
   status: EventStatus;
   registrationsCount: number;
   checkedInCount: number;
+  friendsCount: number;
+  checkedInFriendsCount: number;
 }
 
 export interface StatsEventResponse {

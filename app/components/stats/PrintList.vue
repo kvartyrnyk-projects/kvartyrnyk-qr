@@ -27,6 +27,10 @@ defineProps<{
                 v.fullName ??
                 (v.username ? `@${v.username}` : `#${v.registrationId}`)
               }}</span
+            ><span
+              v-if="v.friendsCount > 0"
+              class="font-semibold text-sky-400 ml-1"
+              >+{{ v.friendsCount }}</span
             >
             <span
               v-if="v.username"

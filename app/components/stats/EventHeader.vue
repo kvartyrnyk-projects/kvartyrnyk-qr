@@ -49,7 +49,7 @@ const handlePrint = () => {
       </div>
     </template>
 
-    <div class="grid grid-cols-3 gap-4 text-center">
+    <div class="grid grid-cols-4 gap-4 text-center">
       <div>
         <p class="text-2xl font-bold text-primary">
           {{ event.registrationsCount }}
@@ -57,10 +57,17 @@ const handlePrint = () => {
         <p class="text-xs text-gray-600 dark:text-gray-400">Зареєстровано</p>
       </div>
       <div>
-        <p class="text-2xl font-bold text-success">
-          {{ event.checkedInCount }}
+        <p class="text-2xl font-bold">
+          <span class="text-success">{{ event.checkedInCount }}</span
+          ><span v-if="event.checkedInFriendsCount > 0" class="text-sky-400"
+            >+{{ event.checkedInFriendsCount }}</span
+          >
         </p>
         <p class="text-xs text-gray-600 dark:text-gray-400">Відвідали</p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold text-sky-400">{{ event.friendsCount }}</p>
+        <p class="text-xs text-gray-600 dark:text-gray-400">Друзі</p>
       </div>
       <div>
         <p class="text-2xl font-bold">{{ event.maxSlots }}</p>
@@ -71,17 +78,32 @@ const handlePrint = () => {
     <!-- Slot usage bar -->
     <div class="mt-4">
       <div
-        class="h-2 w-full rounded-full bg-gray-200 dark:bg-neutral-700 overflow-hidden"
+        class="h-2 w-full rounded-full bg-gray-200 dark:bg-neutral-700 overflow-hidden flex"
       >
         <div
-          class="h-2 rounded-full bg-primary transition-all"
+          class="h-2 bg-primary transition-all"
           :style="{
             width: `${Math.min(100, (event.registrationsCount / event.maxSlots) * 100)}%`,
           }"
         />
+        <div
+          v-if="event.friendsCount > 0"
+          class="h-2 bg-sky-400 transition-all"
+          :style="{
+            width: `${Math.min(
+              100 -
+                Math.min(
+                  100,
+                  (event.registrationsCount / event.maxSlots) * 100,
+                ),
+              (event.friendsCount / event.maxSlots) * 100,
+            )}%`,
+          }"
+        />
       </div>
       <p class="mt-1 text-right text-xs text-gray-600 dark:text-gray-400">
-        {{ event.registrationsCount }} / {{ event.maxSlots }} місць
+        {{ event.registrationsCount + event.friendsCount }} /
+        {{ event.maxSlots }} місць
       </p>
     </div>
   </UCard>

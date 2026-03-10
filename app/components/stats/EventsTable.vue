@@ -42,6 +42,7 @@ const statusLabel: Record<EventSummaryRow["status"], string> = {
           <th class="py-2 pr-4 font-medium">Статус</th>
           <th class="py-2 pr-4 font-medium text-right">Реєстрацій</th>
           <th class="py-2 pr-4 font-medium text-right">Відвідали</th>
+          <th class="py-2 pr-4 font-medium text-right text-sky-400">Друзів</th>
           <th class="py-2 pr-4 font-medium text-right">Оплат</th>
           <th class="py-2 font-medium" />
         </tr>
@@ -72,6 +73,9 @@ const statusLabel: Record<EventSummaryRow["status"], string> = {
             {{ ev.registrationsCount }} / {{ ev.maxSlots }}
           </td>
           <td class="py-3 pr-4 text-right">{{ ev.checkedInCount }}</td>
+          <td class="py-3 pr-4 text-right text-sky-400">
+            {{ ev.friendsCount }}
+          </td>
           <td class="py-3 pr-4 text-right">{{ ev.confirmedPayments }}</td>
           <td class="py-3">
             <UButton
@@ -84,7 +88,7 @@ const statusLabel: Record<EventSummaryRow["status"], string> = {
         </tr>
         <tr v-if="!events.length">
           <td
-            colspan="7"
+            colspan="8"
             class="py-6 text-center text-gray-600 dark:text-gray-400"
           >
             Немає подій

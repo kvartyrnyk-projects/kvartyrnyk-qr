@@ -101,6 +101,10 @@ export default defineEventHandler(
 
     const registrationsCount = visitorRows.length;
     const checkedInCount = visitorRows.filter((v) => v.checked_in_at).length;
+    const friendsCount = visitorRows.reduce((s, v) => s + v.friends_count, 0);
+    const checkedInFriendsCount = visitorRows
+      .filter((v) => v.checked_in_at)
+      .reduce((s, v) => s + v.friends_count, 0);
 
     const visitors: VisitorRow[] = visitorRows.map((v) => ({
       registrationId: v.registration_id,
@@ -132,6 +136,8 @@ export default defineEventHandler(
         status: eventRow.status as StatsEventResponse["event"]["status"],
         registrationsCount,
         checkedInCount,
+        friendsCount,
+        checkedInFriendsCount,
       },
       visitors,
     };

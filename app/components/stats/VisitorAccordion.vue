@@ -46,6 +46,11 @@ const visitorLabel = (v: VisitorRow) =>
       <template #default>
         <div class="flex flex-wrap items-center gap-1.5">
           <span class="font-medium">{{ visitorLabel(v) }}</span>
+          <span
+            v-if="v.friendsCount > 0"
+            class="text-sky-400 font-medium text-sm"
+            >+{{ v.friendsCount }}</span
+          >
           <UBadge
             v-if="v.checkedInAt"
             label="✓ Зайшов"

@@ -16,6 +16,7 @@ interface EventSummaryDbRow {
   registrations_count: number;
   checked_in_count: number;
   confirmed_payments: number;
+  friends_count: number;
 }
 
 export default defineEventHandler(
@@ -41,7 +42,8 @@ export default defineEventHandler(
         e.max_slots,
         COUNT(r.id)::int                                                          AS registrations_count,
         COUNT(r.checked_in_at)::int                                               AS checked_in_count,
-        COUNT(*) FILTER (WHERE p.status = 'CONFIRMED')::int                    AS confirmed_payments
+        COUNT(*) FILTER (WHERE p.status = 'CONFIRMED')::int                    AS confirmed_payments,
+        (SELECT COUNT(*)::int FROM friends f JOIN registrations r2 ON f.registration_id = r2.id WHERE r2.event_id = e.id) AS friends_count
       FROM events e
       LEFT JOIN registrations r ON r.event_id = e.id
       LEFT JOIN LATERAL (
@@ -72,6 +74,7 @@ export default defineEventHandler(
           registrationsCount: r.registrations_count,
           checkedInCount: r.checked_in_count,
           confirmedPayments: r.confirmed_payments,
+          friendsCount: r.friends_count,
         }),
       ),
     };
