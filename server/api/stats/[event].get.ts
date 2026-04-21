@@ -1,4 +1,5 @@
 import { sql } from "~~/server/utils/db";
+import { isInRole } from "~~/server/utils/auth";
 import type {
   StatsEventResponse,
   VisitorRow,
@@ -37,10 +38,7 @@ interface FriendDbRow {
 
 export default defineEventHandler(
   async (event): Promise<StatsEventResponse> => {
-    const dbUser = event.context.auth?.dbUser;
-    if (dbUser?.role !== "ADMIN") {
-      throw createError({ statusCode: 403, message: "Доступ заборонено" });
-    }
+    await isInRole(event, ["ADMIN"]);
 
     const rawId = event.context.params?.event;
     const eventId = Number(rawId);

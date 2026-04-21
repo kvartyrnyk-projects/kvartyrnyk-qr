@@ -71,5 +71,5 @@ export interface StatsEventResponse {
 
 export interface MeResponse {
   role: string;
-  fullName: string | null;
+  fullName: string;
 }
