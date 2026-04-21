@@ -1,4 +1,5 @@
 import { sql } from "~~/server/utils/db";
+import { isInRole } from "~~/server/utils/auth";
 import type { StatsIndexResponse, EventSummaryRow } from "~/types/stats";
 
 interface TotalsRow {
@@ -21,10 +22,7 @@ interface EventSummaryDbRow {
 
 export default defineEventHandler(
   async (event): Promise<StatsIndexResponse> => {
-    const dbUser = event.context.auth?.dbUser;
-    if (dbUser?.role !== "ADMIN") {
-      throw createError({ statusCode: 403, message: "Доступ заборонено" });
-    }
+    await isInRole(event, ["ADMIN"]);
 
     const [totals] = await sql<[TotalsRow]>`
       SELECT

@@ -1,4 +1,5 @@
 import { sql } from "~~/server/utils/db";
+import { isInRole } from "~~/server/utils/auth";
 import { uuidRegex } from "~/utils/redirects";
 
 import type {
@@ -44,7 +45,8 @@ export default defineEventHandler(
       } satisfies ErrorResponse;
     }
 
-    const scannedBy: number | null = event.context.auth?.dbUser?.id ?? null;
+    const dbUser = await isInRole(event, ["ADMIN", "BARTENDER", "SUDO"]);
+    const scannedBy: number = dbUser.id;
 
     // Look up registration by QR token with user and event details
     const [registration] = await sql<RegistrationRow[]>`

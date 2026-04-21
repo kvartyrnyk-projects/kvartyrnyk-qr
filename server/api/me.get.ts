@@ -1,12 +1,10 @@
+import { isInRole } from "~~/server/utils/auth";
 import type { MeResponse } from "~/types/stats";
 
-export default defineEventHandler((event): MeResponse => {
-  const dbUser = event.context.auth?.dbUser;
-  if (!dbUser) {
-    throw createError({ statusCode: 401, message: "Не авторизовано" });
-  }
+export default defineEventHandler(async (event): Promise<MeResponse> => {
+  const dbUser = await isInRole(event, ["ADMIN", "BARTENDER", "SUDO"]);
   return {
     role: dbUser.role,
-    fullName: dbUser.full_name ?? null,
+    fullName: dbUser.full_name,
   };
 });
