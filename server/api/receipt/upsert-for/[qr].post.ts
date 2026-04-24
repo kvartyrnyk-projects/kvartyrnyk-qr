@@ -87,7 +87,7 @@ export default defineEventHandler(async (event): Promise<ReceiptResponse> => {
     FROM registrations r
     JOIN events e ON r.event_id = e.id
     WHERE r.qr_token = ${qr}
-      AND e.status = 'ONGOING'
+      AND e.status NOT IN ('FINISHED', 'CANCELLED')
     LIMIT 1
   `;
 
