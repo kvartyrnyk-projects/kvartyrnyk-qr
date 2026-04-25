@@ -42,9 +42,12 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     });
   }
 
-  const link = generatePaymentLink(Number(row.total) / 100);
+  const totalHryvnia = Number(row.total) / 100;
+  const link = generatePaymentLink(totalHryvnia);
   const template = row.receipt_payment_message ?? "Сплати рахунок за бар і прикріпи скрін: {link}";
-  const message = template.replace("{link}", link);
+  const message = template
+    .replace("{total}", totalHryvnia % 1 === 0 ? String(totalHryvnia) : totalHryvnia.toFixed(2))
+    .replace("{link}", link);
 
   await sendTelegramMessage(row.telegram_id, message);
 
