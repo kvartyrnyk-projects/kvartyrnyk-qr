@@ -87,6 +87,17 @@ const requestPayment = async () => {
   requestingPayment.value = true;
   requestError.value = null;
   try {
+    const entries = Object.entries(counts)
+      .filter(([, count]) => count > 0)
+      .map(([productId, unit_count]) => ({
+        product_id: Number(productId),
+        unit_count,
+      }));
+    await $fetch(`/api/receipt/${receipt.value.id}/entries`, {
+      method: "PUT",
+      body: { entries },
+      headers: getHeaders(),
+    });
     await $fetch(`/api/receipt/${receipt.value.id}/request-payment`, {
       method: "POST",
       headers: getHeaders(),
