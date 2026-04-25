@@ -51,8 +51,8 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     WHERE id = ${id}
   `;
 
-  const link = generatePaymentLink(Number(row.total));
-  const template = row.receipt_payment_message ?? "Сплати рахунок за бар: {link}";
+  const link = generatePaymentLink(Number(row.total) / 100); // total is in cents
+  const template = row.receipt_payment_message ?? "Сплати рахунок за бар та надішли скрін: {link}";
   const message = template.replace("{link}", link);
   await sendTelegramMessage(row.telegram_id, message);
 
