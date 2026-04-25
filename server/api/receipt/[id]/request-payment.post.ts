@@ -42,8 +42,8 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     });
   }
 
-  const link = generatePaymentLink(Number(row.total));
-  const template = row.receipt_payment_message ?? "Сплати рахунок за бар: {link}";
+  const link = generatePaymentLink(Number(row.total) / 100);
+  const template = row.receipt_payment_message ?? "Сплати рахунок за бар і прикріпи скрін: {link}";
   const message = template.replace("{link}", link);
 
   await sendTelegramMessage(row.telegram_id, message);

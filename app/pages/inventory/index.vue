@@ -95,7 +95,7 @@ const deleteProduct = async (id: number) => {
       headers: getHeaders(),
     });
     await refresh();
-  } catch (err: any) {
+  } catch (err) {
     deleteError.value = err?.data?.message ?? "Помилка видалення";
   }
 };

@@ -72,7 +72,7 @@ const saveEntries = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     saveError.value = err?.data?.message ?? "Помилка збереження";
   } finally {
     saving.value = false;
@@ -92,7 +92,7 @@ const requestPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     requestError.value = err?.data?.message ?? "Помилка надсилання запиту";
   } finally {
     requestingPayment.value = false;
@@ -112,7 +112,7 @@ const confirmPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     confirmError.value = err?.data?.message ?? "Помилка підтвердження";
   } finally {
     confirming.value = false;
@@ -132,10 +132,30 @@ const rejectPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     rejectError.value = err?.data?.message ?? "Помилка відхилення";
   } finally {
     rejecting.value = false;
+  }
+};
+
+const creatingNew = ref(false);
+const createNewError = ref<string | null>(null);
+
+const createNewOrder = async () => {
+  creatingNew.value = true;
+  createNewError.value = null;
+  try {
+    await $fetch(`/api/receipt/new-for/${qr.value}`, {
+      method: "POST",
+      headers: getHeaders(),
+    });
+    Object.keys(counts).forEach((k) => delete counts[Number(k)]);
+    await refreshReceipt();
+  } catch (err) {
+    createNewError.value = err?.data?.message ?? "Помилка створення замовлення";
+  } finally {
+    creatingNew.value = false;
   }
 };
 </script>
@@ -327,6 +347,19 @@ const rejectPayment = async () => {
             </div>
           </div>
         </UCard>
+
+        <p v-if="createNewError" class="text-sm text-error">
+          {{ createNewError }}
+        </p>
+
+        <UButton
+          class="w-full"
+          variant="ghost"
+          :loading="creatingNew"
+          @click="createNewOrder"
+        >
+          Нове замовлення
+        </UButton>
       </template>
     </template>
   </div>

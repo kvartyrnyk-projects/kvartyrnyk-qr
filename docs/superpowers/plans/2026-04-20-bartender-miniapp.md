@@ -13,6 +13,7 @@
 ## File Map
 
 **New server files:**
+
 - `server/utils/telegram.ts` — sendTelegramMessage helper
 - `server/utils/payment-link.ts` — generatePaymentLink stub
 - `server/api/products/index.get.ts` — list all products
@@ -26,9 +27,11 @@
 - `server/api/receipt/[id]/reject-payment.post.ts` — set FAILED + UNPAID + resend DM
 
 **Modified server files:**
+
 - `server/middleware/auth.ts` — add `SUDO` to allowed roles
 
 **New app files:**
+
 - `app/types/receipt.ts` — Product, ReceiptEntry, ReceiptResponse types
 - `app/composables/useAuth.ts` — fetch /api/me, expose isBartender, guard pages
 - `app/pages/inventory/index.vue` — product CRUD page
@@ -40,6 +43,7 @@
 ### Task 1: TypeScript types
 
 **Files:**
+
 - Create: `app/types/receipt.ts`
 
 - [ ] **Step 1: Create types file**
@@ -108,6 +112,7 @@ git commit -m "feat(types): add receipt and product types"
 ### Task 2: Server utilities (Telegram messaging + payment link)
 
 **Files:**
+
 - Create: `server/utils/telegram.ts`
 - Create: `server/utils/payment-link.ts`
 
@@ -158,6 +163,7 @@ git commit -m "feat(server): add Telegram message helper and payment link stub"
 ### Task 3: Update auth middleware to allow SUDO role
 
 **Files:**
+
 - Modify: `server/middleware/auth.ts`
 
 - [ ] **Step 1: Add SUDO to the allowed roles list and update dev mock**
@@ -165,19 +171,23 @@ git commit -m "feat(server): add Telegram message helper and payment link stub"
 In `server/middleware/auth.ts`, make two changes:
 
 Change the allowed roles check from:
+
 ```typescript
-  if (!dbUser || !["ADMIN", "BARTENDER"].includes(dbUser.role)) {
-    throw createError({ statusCode: 403, message: "Доступ заборонено" });
-  }
+if (!dbUser || !["ADMIN", "BARTENDER"].includes(dbUser.role)) {
+  throw createError({ statusCode: 403, message: "Доступ заборонено" });
+}
 ```
+
 to:
+
 ```typescript
-  if (!dbUser || !["ADMIN", "BARTENDER", "SUDO"].includes(dbUser.role)) {
-    throw createError({ statusCode: 403, message: "Доступ заборонено" });
-  }
+if (!dbUser || !["ADMIN", "BARTENDER", "SUDO"].includes(dbUser.role)) {
+  throw createError({ statusCode: 403, message: "Доступ заборонено" });
+}
 ```
 
 Also change the dev mock role from `"ADMIN"` to `"SUDO"` so that bartender/receipt/product endpoints (which require `BARTENDER | SUDO`) work in development:
+
 ```typescript
   // inside the `if (import.meta.dev)` block:
   dbUser: { id: 1, telegram_id: 1, role: "SUDO", full_name: "Dev User" },
@@ -203,6 +213,7 @@ git commit -m "feat(auth): allow SUDO role through middleware"
 ### Task 4: Products API — GET list and POST create
 
 **Files:**
+
 - Create: `server/api/products/index.get.ts`
 - Create: `server/api/products/index.post.ts`
 
@@ -264,14 +275,26 @@ export default defineEventHandler(async (event): Promise<Product> => {
     throw createError({ statusCode: 400, message: "Назва обов'язкова" });
   }
   if (!body.unit?.trim()) {
-    throw createError({ statusCode: 400, message: "Одиниця вимірювання обов'язкова" });
+    throw createError({
+      statusCode: 400,
+      message: "Одиниця вимірювання обов'язкова",
+    });
   }
   if (!Number.isFinite(body.price) || body.price < 0) {
     throw createError({ statusCode: 400, message: "Невірна ціна" });
   }
 
   const tags = body.tags ?? [];
-  const [row] = await sql<{ id: number; name: string; description: string | null; unit: string; price: number; tags: string[] }[]>`
+  const [row] = await sql<
+    {
+      id: number;
+      name: string;
+      description: string | null;
+      unit: string;
+      price: number;
+      tags: string[];
+    }[]
+  >`
     INSERT INTO products (name, description, unit, price, tags)
     VALUES (
       ${body.name.trim()},
@@ -314,6 +337,7 @@ git commit -m "feat(api): add products GET and POST endpoints"
 ### Task 5: Products API — PUT update and DELETE
 
 **Files:**
+
 - Create: `server/api/products/[id].put.ts`
 - Create: `server/api/products/[id].delete.ts`
 
@@ -341,14 +365,26 @@ export default defineEventHandler(async (event): Promise<Product> => {
     throw createError({ statusCode: 400, message: "Назва обов'язкова" });
   }
   if (!body.unit?.trim()) {
-    throw createError({ statusCode: 400, message: "Одиниця вимірювання обов'язкова" });
+    throw createError({
+      statusCode: 400,
+      message: "Одиниця вимірювання обов'язкова",
+    });
   }
   if (!Number.isFinite(body.price) || body.price < 0) {
     throw createError({ statusCode: 400, message: "Невірна ціна" });
   }
 
   const tags = body.tags ?? [];
-  const [row] = await sql<{ id: number; name: string; description: string | null; unit: string; price: number; tags: string[] }[]>`
+  const [row] = await sql<
+    {
+      id: number;
+      name: string;
+      description: string | null;
+      unit: string;
+      price: number;
+      tags: string[];
+    }[]
+  >`
     UPDATE products
     SET
       name        = ${body.name.trim()},
@@ -400,7 +436,7 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     if (!row) {
       throw createError({ statusCode: 404, message: "Продукт не знайдено" });
     }
-  } catch (err: any) {
+  } catch (err) {
     // Postgres FK restrict violation code: 23503
     if (err?.code === "23503") {
       throw createError({
@@ -444,6 +480,7 @@ git commit -m "feat(api): add products PUT and DELETE endpoints"
 ### Task 6: Receipt upsert-for endpoint
 
 **Files:**
+
 - Create: `server/api/receipt/upsert-for/[qr].post.ts`
 
 This route finds the guest's registration by QR token for the current ONGOING event, returns the existing UNPAID or AWAITING_PAYMENT receipt (or creates a fresh UNPAID one), with all entries and payment file info.
@@ -461,15 +498,17 @@ import { uuidRegex } from "~/utils/redirects";
 import type { ReceiptResponse } from "~/types/receipt";
 
 async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> {
-  const [receipt] = await sql<{
-    id: number;
-    status: string;
-    total: number;
-    payment_id: number | null;
-    full_name: string;
-    payment_file_id: string | null;
-    payment_mimetype: string | null;
-  }[]>`
+  const [receipt] = await sql<
+    {
+      id: number;
+      status: string;
+      total: number;
+      payment_id: number | null;
+      full_name: string;
+      payment_file_id: string | null;
+      payment_mimetype: string | null;
+    }[]
+  >`
     SELECT
       r.id,
       r.status,
@@ -485,14 +524,16 @@ async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> {
     WHERE r.id = ${receiptId}
   `;
 
-  const entries = await sql<{
-    product_id: number;
-    product_name: string;
-    unit: string;
-    unit_price: number;
-    unit_count: number;
-    subtotal: number;
-  }[]>`
+  const entries = await sql<
+    {
+      product_id: number;
+      product_name: string;
+      unit: string;
+      unit_price: number;
+      unit_count: number;
+      subtotal: number;
+    }[]
+  >`
     SELECT
       re.product_id,
       p.name  AS product_name,
@@ -602,6 +643,7 @@ git commit -m "feat(api): add receipt upsert-for endpoint"
 ### Task 7: Receipt entries update endpoint
 
 **Files:**
+
 - Create: `server/api/receipt/[id]/entries.put.ts`
 
 Replaces all entries for a receipt and recalculates the total. Only works on UNPAID receipts.
@@ -614,15 +656,17 @@ import { sql } from "~~/server/utils/db";
 import type { UpdateEntriesBody, ReceiptResponse } from "~/types/receipt";
 
 async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> {
-  const [receipt] = await sql<{
-    id: number;
-    status: string;
-    total: number;
-    payment_id: number | null;
-    full_name: string;
-    payment_file_id: string | null;
-    payment_mimetype: string | null;
-  }[]>`
+  const [receipt] = await sql<
+    {
+      id: number;
+      status: string;
+      total: number;
+      payment_id: number | null;
+      full_name: string;
+      payment_file_id: string | null;
+      payment_mimetype: string | null;
+    }[]
+  >`
     SELECT
       r.id, r.status, r.total, r.payment_id,
       u.full_name,
@@ -634,14 +678,16 @@ async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> {
     LEFT JOIN payments pay ON r.payment_id = pay.id
     WHERE r.id = ${receiptId}
   `;
-  const entries = await sql<{
-    product_id: number;
-    product_name: string;
-    unit: string;
-    unit_price: number;
-    unit_count: number;
-    subtotal: number;
-  }[]>`
+  const entries = await sql<
+    {
+      product_id: number;
+      product_name: string;
+      unit: string;
+      unit_price: number;
+      unit_count: number;
+      subtotal: number;
+    }[]
+  >`
     SELECT re.product_id, p.name AS product_name, p.unit,
            p.price AS unit_price, re.unit_count, re.subtotal
     FROM receipt_entries re
@@ -686,7 +732,10 @@ export default defineEventHandler(async (event): Promise<ReceiptResponse> => {
       throw createError({ statusCode: 400, message: "Невірний product_id" });
     }
     if (!Number.isInteger(e.unit_count) || e.unit_count < 1) {
-      throw createError({ statusCode: 400, message: "unit_count must be >= 1" });
+      throw createError({
+        statusCode: 400,
+        message: "unit_count must be >= 1",
+      });
     }
   }
 
@@ -769,6 +818,7 @@ git commit -m "feat(api): add receipt entries update endpoint"
 ### Task 8: Payment action endpoints
 
 **Files:**
+
 - Create: `server/api/receipt/[id]/request-payment.post.ts`
 - Create: `server/api/receipt/[id]/confirm-payment.post.ts`
 - Create: `server/api/receipt/[id]/reject-payment.post.ts`
@@ -792,12 +842,14 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw createError({ statusCode: 400, message: "Невірний ID" });
   }
 
-  const [row] = await sql<{
-    status: string;
-    total: number;
-    telegram_id: bigint;
-    receipt_payment_message: string | null;
-  }[]>`
+  const [row] = await sql<
+    {
+      status: string;
+      total: number;
+      telegram_id: bigint;
+      receipt_payment_message: string | null;
+    }[]
+  >`
     SELECT
       r.status,
       r.total,
@@ -855,10 +907,12 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw createError({ statusCode: 400, message: "Невірний ID" });
   }
 
-  const [row] = await sql<{
-    status: string;
-    payment_id: number | null;
-  }[]>`
+  const [row] = await sql<
+    {
+      status: string;
+      payment_id: number | null;
+    }[]
+  >`
     SELECT status, payment_id FROM receipts WHERE id = ${id}
   `;
 
@@ -898,13 +952,15 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw createError({ statusCode: 400, message: "Невірний ID" });
   }
 
-  const [row] = await sql<{
-    status: string;
-    payment_id: number | null;
-    total: number;
-    telegram_id: bigint;
-    receipt_payment_message: string | null;
-  }[]>`
+  const [row] = await sql<
+    {
+      status: string;
+      payment_id: number | null;
+      total: number;
+      telegram_id: bigint;
+      receipt_payment_message: string | null;
+    }[]
+  >`
     SELECT
       r.status,
       r.payment_id,
@@ -967,6 +1023,7 @@ git commit -m "feat(api): add payment action endpoints (request/confirm/reject)"
 ### Task 9: useAuth composable
 
 **Files:**
+
 - Create: `app/composables/useAuth.ts`
 
 - [ ] **Step 1: Create the composable**
@@ -1010,6 +1067,7 @@ git commit -m "feat(composables): add useAuth for role-based page gating"
 ### Task 10: Inventory page
 
 **Files:**
+
 - Create: `app/pages/inventory/index.vue`
 
 - [ ] **Step 1: Create the inventory page**
@@ -1113,9 +1171,8 @@ const deleteProduct = async (id: number) => {
       headers: getHeaders(),
     });
     await refresh();
-  } catch (err: any) {
-    deleteError.value =
-      err?.data?.message ?? "Помилка видалення";
+  } catch (err) {
+    deleteError.value = err?.data?.message ?? "Помилка видалення";
   }
 };
 
@@ -1240,6 +1297,7 @@ bun run dev
 ```
 
 Expected:
+
 - Page loads with "Інвентар" heading and "Додати продукт" button
 - Click "Додати продукт" → form appears
 - Fill in name/unit/price → save → product appears in list
@@ -1258,6 +1316,7 @@ git commit -m "feat(ui): add inventory product CRUD page"
 ### Task 11: Scan entry page for bartenders
 
 **Files:**
+
 - Create: `app/pages/scan/index.vue`
 
 - [ ] **Step 1: Create the scan entry page**
@@ -1301,6 +1360,7 @@ git commit -m "feat(ui): add bartender QR scan entry page"
 ### Task 12: Receipt order/payment page
 
 **Files:**
+
 - Create: `app/pages/scan/[qr].vue`
 
 This is the main bartender interaction page. It fetches the receipt on mount, shows the product catalog with +/- controls for UNPAID status, and shows payment actions based on status.
@@ -1388,7 +1448,7 @@ const saveEntries = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     saveError.value = err?.data?.message ?? "Помилка збереження";
   } finally {
     saving.value = false;
@@ -1409,7 +1469,7 @@ const requestPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     requestError.value = err?.data?.message ?? "Помилка надсилання запиту";
   } finally {
     requestingPayment.value = false;
@@ -1430,7 +1490,7 @@ const confirmPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     confirmError.value = err?.data?.message ?? "Помилка підтвердження";
   } finally {
     confirming.value = false;
@@ -1451,7 +1511,7 @@ const rejectPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: any) {
+  } catch (err) {
     rejectError.value = err?.data?.message ?? "Помилка відхилення";
   } finally {
     rejecting.value = false;
@@ -1533,7 +1593,9 @@ const rejectPayment = async () => {
         <p v-if="requestError" class="text-sm text-error">{{ requestError }}</p>
 
         <!-- Sticky footer with total + actions -->
-        <div class="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200 dark:border-neutral-700">
+        <div
+          class="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200 dark:border-neutral-700"
+        >
           <div class="max-w-md mx-auto flex flex-col gap-2">
             <p class="text-center font-semibold">
               Разом: {{ formatPrice(runningTotal) }}
@@ -1575,7 +1637,9 @@ const rejectPayment = async () => {
               <span>{{ entry.productName }} × {{ entry.unitCount }}</span>
               <span>{{ formatPrice(entry.subtotal) }}</span>
             </div>
-            <div class="border-t border-gray-200 dark:border-neutral-700 pt-2 flex justify-between font-semibold">
+            <div
+              class="border-t border-gray-200 dark:border-neutral-700 pt-2 flex justify-between font-semibold"
+            >
               <span>Разом</span>
               <span>{{ formatPrice(receipt.total) }}</span>
             </div>
@@ -1601,7 +1665,9 @@ const rejectPayment = async () => {
             />
           </UCard>
 
-          <p v-if="confirmError" class="text-sm text-error">{{ confirmError }}</p>
+          <p v-if="confirmError" class="text-sm text-error">
+            {{ confirmError }}
+          </p>
           <p v-if="rejectError" class="text-sm text-error">{{ rejectError }}</p>
 
           <div class="flex gap-2">
@@ -1640,7 +1706,9 @@ const rejectPayment = async () => {
               <span>{{ entry.productName }} × {{ entry.unitCount }}</span>
               <span>{{ formatPrice(entry.subtotal) }}</span>
             </div>
-            <div class="border-t border-gray-200 dark:border-neutral-700 pt-2 flex justify-between font-semibold">
+            <div
+              class="border-t border-gray-200 dark:border-neutral-700 pt-2 flex justify-between font-semibold"
+            >
               <span>Разом</span>
               <span>{{ formatPrice(receipt.total) }}</span>
             </div>

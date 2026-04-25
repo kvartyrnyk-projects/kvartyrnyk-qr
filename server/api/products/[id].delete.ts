@@ -16,7 +16,7 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     if (!row) {
       throw createError({ statusCode: 404, message: "Продукт не знайдено" });
     }
-  } catch (err: any) {
+  } catch (err) {
     if (err?.code === "23503") {
       throw createError({
         statusCode: 409,
