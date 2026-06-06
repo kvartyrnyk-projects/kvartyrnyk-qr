@@ -1,11 +1,12 @@
-import { randomInt } from "node:crypto"
+import { sql } from "~~/server/utils/db";
 
-const jars = [
-  "https://send.monobank.ua/jar/ag5d2jBa6",
-  "https://send.monobank.ua/jar/KTt3mWCih"
-] as const;
+export async function generatePaymentLink(amountHryvnia: number, maxResults: number = 1): Promise<string> {
+  const [jar] = await sql<{
+        url: string;
+      }[]>`SELECT url FROM jars ORDER BY RANDOM() LIMIT ${maxResults}`;
+    if (!jar) {
+      throw new Error("No payment jars available");
+    }
 
-export function generatePaymentLink(amountHryvnia: number): string {
-  const jar = jars[randomInt(0, jars.length)]
-  return `${jar}?a=${amountHryvnia}`;
+  return `${jar.url}?a=${amountHryvnia}`;
 }
