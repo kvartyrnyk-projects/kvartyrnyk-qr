@@ -68,15 +68,7 @@ export default defineEventHandler(
       FROM registrations r
       JOIN users  u ON r.user_id  = u.id
       JOIN events e ON r.event_id = e.id
-      LEFT JOIN LATERAL (
-        SELECT
-          file_id,
-          mimetype
-        FROM payments
-        WHERE payments.registration_id = r.id
-        ORDER BY created_at DESC
-        LIMIT 1
-      ) p ON TRUE
+      LEFT JOIN payments p ON r.payment_id = p.id
       WHERE r.qr_token = ${qrToken}
     `;
 
