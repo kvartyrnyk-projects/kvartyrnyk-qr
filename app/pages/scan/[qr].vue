@@ -191,7 +191,7 @@ const createNewOrder = async () => {
       <UCard>
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-semibold text-lg">{{ receipt.guestName }}</p>
+            <p class="font-semibold text-lg">Замовлення #{{ receipt.id }} для {{ receipt.guestName }}</p>
             <p class="text-sm text-annotation">
               {{
                 receipt.status === "UNPAID"
