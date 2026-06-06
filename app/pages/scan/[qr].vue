@@ -247,21 +247,19 @@ const createNewOrder = async () => {
             <p class="text-center font-semibold">
               Разом: {{ formatPrice(runningTotal) }}
             </p>
-            <div class="flex gap-2">
+            <div class="flex justify-between gap-2">
               <UButton
-                class="flex-1"
                 variant="ghost"
-                :loading="saving"
-                @click="saveEntries"
-              >
-                Зберегти
-              </UButton>
-              <UButton
-                class="flex-1"
                 :loading="requestingPayment"
                 @click="requestPayment"
               >
                 Надіслати запит оплати
+              </UButton>
+              <UButton
+                :loading="saving"
+                @click="saveEntries"
+              >
+                Зберегти
               </UButton>
             </div>
           </div>
