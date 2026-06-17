@@ -22,7 +22,7 @@ interface EventSummaryDbRow {
 
 export default defineEventHandler(
   async (event): Promise<StatsIndexResponse> => {
-    await isInRole(event, ["ADMIN"]);
+    await isInRole(event, ["ADMIN", "SUDO"]);
 
     const [totals] = await sql<[TotalsRow]>`
       SELECT

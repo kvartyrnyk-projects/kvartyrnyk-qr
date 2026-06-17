@@ -38,7 +38,7 @@ interface FriendDbRow {
 
 export default defineEventHandler(
   async (event): Promise<StatsEventResponse> => {
-    await isInRole(event, ["ADMIN"]);
+    await isInRole(event, ["ADMIN", "SUDO"]);
 
     const rawId = event.context.params?.event;
     const eventId = Number(rawId);
