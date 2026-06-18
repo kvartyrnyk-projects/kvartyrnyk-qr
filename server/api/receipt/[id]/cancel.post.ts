@@ -1,8 +1,6 @@
 import { sql } from "~~/server/utils/db";
 import { isInRole } from "~~/server/utils/auth";
 
-// Edit action: returns AWAITING_PAYMENT receipt to UNPAID so line items can be changed.
-// Works for both CARD and CASH payment methods. No new Telegram message is sent.
 export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   await isInRole(event, ["BARTENDER", "SUDO"]);
 
@@ -18,10 +16,10 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
   if (!row) {
     throw createError({ statusCode: 404, message: "Чек не знайдено" });
   }
-  if (row.status !== "AWAITING_PAYMENT") {
+  if (row.status !== "UNPAID" && row.status !== "AWAITING_PAYMENT") {
     throw createError({
       statusCode: 409,
-      message: "Редагувати можна тільки чек у стані очікування оплати",
+      message: "Скасувати можна тільки неоплачений чек або чек в очікуванні оплати",
     });
   }
 
@@ -31,7 +29,7 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
 
   await sql`
     UPDATE receipts
-    SET status = 'UNPAID', payment_id = NULL, payment_method = NULL, updated_at = now()
+    SET status = 'CANCELLED', payment_id = NULL, payment_method = NULL, updated_at = now()
     WHERE id = ${id}
   `;
 

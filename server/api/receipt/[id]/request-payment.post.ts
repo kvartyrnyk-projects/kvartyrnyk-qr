@@ -11,6 +11,12 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     throw createError({ statusCode: 400, message: "Невірний ID" });
   }
 
+  const body = await readBody<{ method?: string }>(event);
+  const method = body?.method;
+  if (method !== "CARD" && method !== "CASH") {
+    throw createError({ statusCode: 400, message: "Вкажіть спосіб оплати: CARD або CASH" });
+  }
+
   const [row] = await sql<
     {
       status: string;
@@ -42,20 +48,21 @@ export default defineEventHandler(async (event): Promise<{ ok: true }> => {
     });
   }
 
-  const totalHryvnia = Number(row.total) / 100;
-  const link = await generatePaymentLink(totalHryvnia);
-  const template = row.receipt_payment_message ?? "Сплати рахунок за бар і прикріпи скрін: {link}";
-  const message = template
-    .replace("{total}", totalHryvnia % 1 === 0 ? String(totalHryvnia) : totalHryvnia.toFixed(2))
-    .replace("{link}", link);
-
-  await sendTelegramMessage(row.telegram_id, message);
-
   await sql`
     UPDATE receipts
-    SET status = 'AWAITING_PAYMENT', updated_at = now()
+    SET status = 'AWAITING_PAYMENT', payment_method = ${method}, updated_at = now()
     WHERE id = ${id}
   `;
+
+  if (method === "CARD") {
+    const totalHryvnia = Number(row.total) / 100;
+    const link = await generatePaymentLink(totalHryvnia);
+    const template = row.receipt_payment_message ?? "Сплати рахунок за бар і прикріпи скрін: {link}";
+    const message = template
+      .replace("{total}", totalHryvnia % 1 === 0 ? String(totalHryvnia) : totalHryvnia.toFixed(2))
+      .replace("{link}", link);
+    await sendTelegramMessage(row.telegram_id, message);
+  }
 
   return { ok: true };
 });

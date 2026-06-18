@@ -8,6 +8,7 @@ export async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> 
     {
       id: number;
       status: string;
+      payment_method: string | null;
       total: number;
       payment_id: number | null;
       full_name: string;
@@ -18,6 +19,7 @@ export async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> 
     SELECT
       r.id,
       r.status,
+      r.payment_method,
       r.total,
       r.payment_id,
       u.full_name,
@@ -59,6 +61,7 @@ export async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> 
   return {
     id: receipt.id,
     status: receipt.status as ReceiptResponse["status"],
+    paymentMethod: receipt.payment_method as ReceiptResponse["paymentMethod"],
     total: Number(receipt.total),
     guestName: receipt.full_name,
     paymentFileId: receipt.payment_file_id,

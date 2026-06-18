@@ -49,7 +49,11 @@ const runningTotal = computed(() => {
 
 const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
 
-const getHeaders = () => ({ Authorization: retrieveRawInitData() });
+const getHeaders = () => {
+  const Authorization = retrieveRawInitData()
+  if (!Authorization) return
+  return { Authorization }
+}
 
 const saving = ref(false);
 const saveError = ref<string | null>(null);
@@ -72,18 +76,26 @@ const saveEntries = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err) {
-    saveError.value = err?.data?.message ?? "Помилка збереження";
+  } catch (err: unknown) {
+    saveError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка збереження";
   } finally {
     saving.value = false;
   }
 };
 
+// Payment method modal
+const paymentModalOpen = ref(false);
+
+const openPaymentModal = () => {
+  paymentModalOpen.value = true;
+};
+
 const requestingPayment = ref(false);
 const requestError = ref<string | null>(null);
 
-const requestPayment = async () => {
+const requestPayment = async (method: "CARD" | "CASH") => {
   if (!receipt.value) return;
+  paymentModalOpen.value = false;
   requestingPayment.value = true;
   requestError.value = null;
   try {
@@ -100,11 +112,12 @@ const requestPayment = async () => {
     });
     await $fetch(`/api/receipt/${receipt.value.id}/request-payment`, {
       method: "POST",
+      body: { method },
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err) {
-    requestError.value = err?.data?.message ?? "Помилка надсилання запиту";
+  } catch (err: unknown) {
+    requestError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка надсилання запиту";
   } finally {
     requestingPayment.value = false;
   }
@@ -123,30 +136,50 @@ const confirmPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err) {
-    confirmError.value = err?.data?.message ?? "Помилка підтвердження";
+  } catch (err: unknown) {
+    confirmError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка підтвердження";
   } finally {
     confirming.value = false;
   }
 };
 
-const rejecting = ref(false);
-const rejectError = ref<string | null>(null);
+const editing = ref(false);
+const editError = ref<string | null>(null);
 
-const rejectPayment = async () => {
+const editReceipt = async () => {
   if (!receipt.value) return;
-  rejecting.value = true;
-  rejectError.value = null;
+  editing.value = true;
+  editError.value = null;
   try {
     await $fetch(`/api/receipt/${receipt.value.id}/reject-payment`, {
       method: "POST",
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err) {
-    rejectError.value = err?.data?.message ?? "Помилка відхилення";
+  } catch (err: unknown) {
+    editError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка редагування";
   } finally {
-    rejecting.value = false;
+    editing.value = false;
+  }
+};
+
+const cancelling = ref(false);
+const cancelError = ref<string | null>(null);
+
+const cancelReceipt = async () => {
+  if (!receipt.value) return;
+  cancelling.value = true;
+  cancelError.value = null;
+  try {
+    await $fetch(`/api/receipt/${receipt.value.id}/cancel`, {
+      method: "POST",
+      headers: getHeaders(),
+    });
+    await refreshReceipt();
+  } catch (err: unknown) {
+    cancelError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка скасування";
+  } finally {
+    cancelling.value = false;
   }
 };
 
@@ -163,8 +196,8 @@ const createNewOrder = async () => {
     });
     Object.keys(counts).forEach((k) => delete counts[Number(k)]);
     await refreshReceipt();
-  } catch (err) {
-    createNewError.value = err?.data?.message ?? "Помилка створення замовлення";
+  } catch (err: unknown) {
+    createNewError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка створення замовлення";
   } finally {
     creatingNew.value = false;
   }
@@ -188,6 +221,32 @@ const createNewOrder = async () => {
     </div>
 
     <template v-else-if="receipt">
+      <!-- Payment method modal -->
+      <UModal v-model:open="paymentModalOpen" title="Спосіб оплати">
+        <template #body>
+          <p class="text-sm text-annotation mb-4">Оберіть спосіб оплати для замовлення #{{ receipt.id }}</p>
+          <div class="flex gap-3">
+            <UButton
+              class="flex-1"
+              variant="outline"
+              :loading="requestingPayment"
+              @click="requestPayment('CASH')"
+            >
+              <UIcon name="i-heroicons-banknotes" class="mr-1" aria-hidden="true" />
+              <span>Готівка</span>
+            </UButton>
+            <UButton
+              class="flex-1"
+              :loading="requestingPayment"
+              @click="requestPayment('CARD')"
+            >
+              <UIcon name="i-heroicons-credit-card" class="mr-1" aria-hidden="true" />
+              <span>Картка</span>
+            </UButton>
+          </div>
+        </template>
+      </UModal>
+
       <UCard>
         <div class="flex items-center justify-between">
           <div>
@@ -195,11 +254,16 @@ const createNewOrder = async () => {
             <p class="text-sm text-annotation">
               {{
                 receipt.status === "UNPAID"
-                  ? "Не оплачено"
+                  ? "В процесі"
                   : receipt.status === "AWAITING_PAYMENT"
                     ? "Очікується оплата"
-                    : "Оплачено"
+                    : receipt.status === "PAID"
+                      ? "Оплачено"
+                      : "Скасовано"
               }}
+              <span v-if="receipt.paymentMethod" class="ml-1">
+                ({{ receipt.paymentMethod === "CASH" ? "готівка" : "картка" }})
+              </span>
             </p>
           </div>
           <UButton
@@ -208,7 +272,8 @@ const createNewOrder = async () => {
             variant="ghost"
             @click="refreshReceipt"
           >
-            Оновити
+            <UIcon name="i-heroicons-arrow-path" aria-hidden="true" />
+            <span class="sr-only">Оновити</span>
           </UButton>
         </div>
       </UCard>
@@ -239,6 +304,7 @@ const createNewOrder = async () => {
 
         <p v-if="saveError" class="text-sm text-error">{{ saveError }}</p>
         <p v-if="requestError" class="text-sm text-error">{{ requestError }}</p>
+        <p v-if="cancelError" class="text-sm text-error">{{ cancelError }}</p>
 
         <div
           class="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-gray-200 dark:border-neutral-700"
@@ -249,9 +315,18 @@ const createNewOrder = async () => {
             </p>
             <div class="flex justify-between gap-2">
               <UButton
+                color="error"
+                variant="ghost"
+                :loading="cancelling"
+                @click="cancelReceipt"
+              >
+                <UIcon name="i-heroicons-x-mark" aria-hidden="true" />
+                <span class="sr-only">Скасувати</span>
+              </UButton>
+              <UButton
                 variant="ghost"
                 :loading="requestingPayment"
-                @click="requestPayment"
+                @click="openPaymentModal"
               >
                 Надіслати запит оплати
               </UButton>
@@ -259,7 +334,8 @@ const createNewOrder = async () => {
                 :loading="saving"
                 @click="saveEntries"
               >
-                Зберегти
+                <UIcon name="i-heroicons-check" aria-hidden="true" />
+                <span class="sr-only">Зберегти</span>
               </UButton>
             </div>
           </div>
@@ -290,39 +366,84 @@ const createNewOrder = async () => {
           </div>
         </UCard>
 
-        <template v-if="!receipt.paymentFileId">
-          <p class="text-annotation text-sm text-center">
-            Очікуємо підтвердження оплати від гостя...
-          </p>
-        </template>
-
-        <template v-else>
-          <UCard>
-            <template #header>
-              <h2 class="font-semibold">Підтвердження оплати</h2>
-            </template>
-            <ViewerPaymentReceipt
-              :file-id="receipt.paymentFileId"
-              :mimetype="receipt.paymentMimetype"
-            />
-          </UCard>
-
-          <p v-if="confirmError" class="text-sm text-error">
-            {{ confirmError }}
-          </p>
-          <p v-if="rejectError" class="text-sm text-error">{{ rejectError }}</p>
+        <!-- Cash path: no screenshot needed -->
+        <template v-if="receipt.paymentMethod === 'CASH'">
+          <p v-if="confirmError" class="text-sm text-error">{{ confirmError }}</p>
+          <p v-if="editError" class="text-sm text-error">{{ editError }}</p>
+          <p v-if="cancelError" class="text-sm text-error">{{ cancelError }}</p>
 
           <div class="flex gap-2">
             <UButton
-              class="flex-1"
               color="error"
               variant="ghost"
-              :loading="rejecting"
-              @click="rejectPayment"
+              :loading="cancelling"
+              @click="cancelReceipt"
             >
-              Відхилити
+              <UIcon name="i-heroicons-x-mark" aria-hidden="true" />
+              <span class="sr-only">Скасувати</span>
             </UButton>
             <UButton
+              variant="outline"
+              :loading="editing"
+              @click="editReceipt"
+            >
+              <UIcon name="i-heroicons-pencil" aria-hidden="true" />
+              <span class="sr-only">Редагувати</span>
+            </UButton>
+            <UButton
+              class="flex-1"
+              :loading="confirming"
+              @click="confirmPayment"
+            >
+              Підтвердити отримання готівки
+            </UButton>
+          </div>
+        </template>
+
+        <!-- Card path: wait for screenshot -->
+        <template v-else>
+          <template v-if="!receipt.paymentFileId">
+            <p class="text-annotation text-sm text-center">
+              Очікуємо підтвердження оплати від гостя...
+            </p>
+          </template>
+
+          <template v-else>
+            <UCard>
+              <template #header>
+                <h2 class="font-semibold">Підтвердження оплати</h2>
+              </template>
+              <ViewerPaymentReceipt
+                :file-id="receipt.paymentFileId"
+                :mimetype="receipt.paymentMimetype"
+              />
+            </UCard>
+          </template>
+
+          <p v-if="confirmError" class="text-sm text-error">{{ confirmError }}</p>
+          <p v-if="editError" class="text-sm text-error">{{ editError }}</p>
+          <p v-if="cancelError" class="text-sm text-error">{{ cancelError }}</p>
+
+          <div class="flex gap-2">
+            <UButton
+              color="error"
+              variant="ghost"
+              :loading="cancelling"
+              @click="cancelReceipt"
+            >
+              <UIcon name="i-heroicons-x-mark" aria-hidden="true" />
+              <span class="sr-only">Скасувати</span>
+            </UButton>
+            <UButton
+              variant="outline"
+              :loading="editing"
+              @click="editReceipt"
+            >
+              <UIcon name="i-heroicons-pencil" aria-hidden="true" />
+              <span class="sr-only">Редагувати</span>
+            </UButton>
+            <UButton
+              v-if="receipt.paymentFileId"
               class="flex-1"
               :loading="confirming"
               @click="confirmPayment"
@@ -367,6 +488,47 @@ const createNewOrder = async () => {
           :loading="creatingNew"
           @click="createNewOrder"
         >
+          <UIcon name="i-heroicons-plus" aria-hidden="true" />
+          <span class="sr-only">Нове замовлення</span>
+          Нове замовлення
+        </UButton>
+      </template>
+
+      <!-- CANCELLED: terminal state -->
+      <template v-else-if="receipt.status === 'CANCELLED'">
+        <UCard>
+          <template #header>
+            <h2 class="font-semibold">Замовлення скасовано</h2>
+          </template>
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="entry in receipt.entries"
+              :key="entry.productId"
+              class="flex justify-between text-sm text-annotation"
+            >
+              <span>{{ entry.productName }} × {{ entry.unitCount }}</span>
+              <span>{{ formatPrice(entry.subtotal) }}</span>
+            </div>
+            <div
+              class="border-t border-gray-200 dark:border-neutral-700 pt-2 flex justify-between font-semibold text-annotation"
+            >
+              <span>Разом</span>
+              <span>{{ formatPrice(receipt.total) }}</span>
+            </div>
+          </div>
+        </UCard>
+
+        <p v-if="createNewError" class="text-sm text-error">
+          {{ createNewError }}
+        </p>
+
+        <UButton
+          class="w-full"
+          variant="ghost"
+          :loading="creatingNew"
+          @click="createNewOrder"
+        >
+          <UIcon name="i-heroicons-plus" aria-hidden="true" />
           Нове замовлення
         </UButton>
       </template>

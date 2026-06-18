@@ -1,0 +1,82 @@
+import { sql } from "~~/server/utils/db";
+import type { ReceiptStatus, PaymentMethod } from "~/types/receipt";
+
+interface ReceiptSummary {
+  id: number;
+  status: ReceiptStatus;
+  paymentMethod: PaymentMethod | null;
+  total: number;
+  guestName: string;
+}
+
+export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
+  const telegramUserId = event.context.telegramUserId as number;
+
+  const [dbUser] = await sql<{ id: number; role: string }[]>`
+    SELECT id, role FROM users WHERE telegram_id = ${telegramUserId}
+  `;
+  if (!dbUser) {
+    throw createError({ statusCode: 403, message: "Доступ заборонено" });
+  }
+
+  const isBartender = dbUser.role === "BARTENDER" || dbUser.role === "SUDO";
+
+  if (isBartender) {
+    const rows = await sql<{
+      id: number;
+      status: string;
+      payment_method: string | null;
+      total: number;
+      full_name: string;
+    }[]>`
+      SELECT
+        r.id,
+        r.status,
+        r.payment_method,
+        r.total,
+        u.full_name
+      FROM receipts r
+      JOIN registrations reg ON r.registration_id = reg.id
+      JOIN events e ON reg.event_id = e.id
+      JOIN users u ON reg.user_id = u.id
+      WHERE e.status NOT IN ('FINISHED', 'CANCELLED')
+      ORDER BY r.updated_at DESC
+    `;
+    return rows.map((r) => ({
+      id: r.id,
+      status: r.status as ReceiptStatus,
+      paymentMethod: r.payment_method as PaymentMethod | null,
+      total: Number(r.total),
+      guestName: r.full_name,
+    }));
+  }
+
+  const rows = await sql<{
+    id: number;
+    status: string;
+    payment_method: string | null;
+    total: number;
+    full_name: string;
+  }[]>`
+    SELECT
+      r.id,
+      r.status,
+      r.payment_method,
+      r.total,
+      u.full_name
+    FROM receipts r
+    JOIN registrations reg ON r.registration_id = reg.id
+    JOIN events e ON reg.event_id = e.id
+    JOIN users u ON reg.user_id = u.id
+    WHERE reg.user_id = ${dbUser.id}
+      AND e.status NOT IN ('FINISHED', 'CANCELLED')
+    ORDER BY r.updated_at DESC
+  `;
+  return rows.map((r) => ({
+    id: r.id,
+    status: r.status as ReceiptStatus,
+    paymentMethod: r.payment_method as PaymentMethod | null,
+    total: Number(r.total),
+    guestName: r.full_name,
+  }));
+});
