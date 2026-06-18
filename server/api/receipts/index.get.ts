@@ -37,9 +37,9 @@ export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
       SELECT
         r.id,
         r.status,
-        r.payment_method AS paymentMethod,
+        r.payment_method AS "paymentMethod",
         r.total,
-        u.full_name AS guestName,
+        u.full_name AS "guestName",
         u.username,
         u.phone,
         reg.qr_token AS qr
@@ -69,9 +69,9 @@ export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
     SELECT
       r.id,
       r.status,
-      r.payment_method AS paymentMethod,
+      r.payment_method AS "paymentMethod",
       r.total,
-      u.full_name AS guestName,
+      u.full_name AS "guestName",
       reg.qr_token AS qr,
       u.username,
       u.phone

@@ -25,6 +25,8 @@ export interface ReceiptResponse {
   paymentMethod: PaymentMethod | null;
   total: number; // cents
   guestName: string;
+  phoneNumber: string | null;
+  username: string | null;
   entries: ReceiptEntryDetail[];
   paymentFileId: string | null;
   paymentMimetype: string | null;

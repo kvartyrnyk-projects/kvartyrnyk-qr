@@ -14,6 +14,8 @@ export async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> 
       full_name: string;
       payment_file_id: string | null;
       payment_mimetype: string | null;
+      phone: string | null;
+      username: string | null;
     }[]
   >`
     SELECT
@@ -24,7 +26,9 @@ export async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> 
       r.payment_id,
       u.full_name,
       pay.file_id  AS payment_file_id,
-      pay.mimetype AS payment_mimetype
+      pay.mimetype AS payment_mimetype,
+      u.phone,
+      u.username
     FROM receipts r
     JOIN registrations reg ON r.registration_id = reg.id
     JOIN users u ON reg.user_id = u.id
@@ -66,6 +70,8 @@ export async function fetchReceipt(receiptId: number): Promise<ReceiptResponse> 
     guestName: receipt.full_name,
     paymentFileId: receipt.payment_file_id,
     paymentMimetype: receipt.payment_mimetype,
+    phoneNumber: receipt.phone,
+    username: receipt.username,
     entries: entries.map((e) => ({
       productId: e.product_id,
       productName: e.product_name,

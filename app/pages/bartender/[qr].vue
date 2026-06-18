@@ -276,20 +276,7 @@ const createNewOrder = async () => {
               Замовлення #{{ receipt.id }} для {{ receipt.guestName }}
             </p>
             <p class="text-sm text-annotation">
-              {{
-                receipt.status === "UNPAID"
-                  ? "В процесі"
-                  : receipt.status === "AWAITING_PAYMENT"
-                    ? "Очікується оплата"
-                    : receipt.status === "PAID"
-                      ? "Оплачено"
-                      : receipt.status === "FINISHED"
-                        ? "Оброблено"
-                        : "Скасовано"
-              }}
-              <span v-if="receipt.paymentMethod" class="ml-1">
-                ({{ receipt.paymentMethod === "CASH" ? "готівка" : "картка" }})
-              </span>
+              {{ receipt.phoneNumber }} | {{ receipt.username }}
             </p>
           </div>
           <UButton
