@@ -179,7 +179,7 @@ const pay = async () => {
             <p class="text-center font-semibold">
               Разом: {{ formatPrice(runningTotal) }}
             </p>
-            <div class="flex gap-2">
+            <div class="flex justify-end gap-2">
               <UButton variant="outline" :loading="saving" @click="saveEntries">
                 <UIcon name="i-heroicons-check" class="size-5" aria-hidden="true" />
                 <span class="sr-only">Зберегти</span>

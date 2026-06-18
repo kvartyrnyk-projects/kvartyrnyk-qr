@@ -276,7 +276,7 @@ const createNewOrder = async () => {
               Замовлення #{{ receipt.id }} для {{ receipt.guestName }}
             </p>
             <p class="text-sm text-annotation">
-              {{ receipt.phoneNumber }} | {{ receipt.username }}
+              @{{ receipt.username }} | {{ receipt.phoneNumber }}
             </p>
           </div>
           <UButton
@@ -384,7 +384,7 @@ const createNewOrder = async () => {
           <p v-if="editError" class="text-sm text-error">{{ editError }}</p>
           <p v-if="cancelError" class="text-sm text-error">{{ cancelError }}</p>
 
-          <div class="flex gap-2">
+          <div class="flex justify-end gap-2">
             <UButton
               color="error"
               variant="ghost"
@@ -430,7 +430,7 @@ const createNewOrder = async () => {
           <p v-if="editError" class="text-sm text-error">{{ editError }}</p>
           <p v-if="cancelError" class="text-sm text-error">{{ cancelError }}</p>
 
-          <div class="flex gap-2">
+          <div class="flex justify-end gap-2">
             <UButton
               color="error"
               variant="ghost"
@@ -484,7 +484,7 @@ const createNewOrder = async () => {
           {{ createNewError }}
         </p>
 
-        <div class="flex gap-2">
+        <div class="flex justify-end gap-2">
           <UButton
             variant="ghost"
             :loading="creatingNew"
