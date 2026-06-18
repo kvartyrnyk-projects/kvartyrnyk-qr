@@ -38,22 +38,17 @@ export default defineEventHandler(
         e.status,
         e.starts_at,
         e.max_slots,
-        COUNT(r.id)::int                                                          AS registrations_count,
-        COUNT(r.checked_in_at)::int                                               AS checked_in_count,
-        COUNT(*) FILTER (WHERE p.status = 'CONFIRMED')::int                    AS confirmed_payments,
-        (SELECT COUNT(*)::int FROM friends f JOIN registrations r2 ON f.registration_id = r2.id WHERE r2.event_id = e.id) AS friends_count
+        COUNT(DISTINCT r.id)::int                                                    AS registrations_count,
+        COUNT(DISTINCT r.id) FILTER (WHERE r.checked_in_at IS NOT NULL)::int         AS checked_in_count,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.status = 'CONFIRMED')::int              AS confirmed_payments,
+        (SELECT COUNT(*)::int
+        FROM friends f
+        JOIN registrations r2 ON f.registration_id = r2.id
+        WHERE r2.event_id = e.id)                                                    AS friends_count
       FROM events e
       LEFT JOIN registrations r ON r.event_id = e.id
-      LEFT JOIN LATERAL (
-        SELECT
-          file_id,
-          mimetype,
-          status
-        FROM payments
-        WHERE payments.registration_id = r.id
-        ORDER BY created_at DESC
-        LIMIT 1
-      ) p ON TRUE
+      LEFT JOIN receipts rec ON rec.registration_id = r.id
+      LEFT JOIN payments p ON p.id = rec.payment_id
       GROUP BY e.id
       ORDER BY e.starts_at DESC
     `;

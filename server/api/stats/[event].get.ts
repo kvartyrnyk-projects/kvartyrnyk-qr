@@ -71,10 +71,11 @@ export default defineEventHandler(
       FROM registrations r
       JOIN users u ON r.user_id = u.id
       LEFT JOIN LATERAL (
-        SELECT file_id, mimetype, status, amount
-        FROM payments
-        WHERE registration_id = r.id
-        ORDER BY created_at DESC
+        SELECT p.file_id, p.mimetype, p.status, p.amount
+        FROM receipts rec
+        JOIN payments p ON p.id = rec.payment_id
+        WHERE rec.registration_id = r.id
+        ORDER BY p.created_at DESC
         LIMIT 1
       ) p ON true
       WHERE r.event_id = ${eventId}
