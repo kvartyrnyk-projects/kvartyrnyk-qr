@@ -120,9 +120,10 @@ const visitorLabel = (v: VisitorRow) =>
                 variant="soft"
                 size="xs"
               />
-              <span class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ v.payment.amount }} UAH</span
-              >
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                <!-- amount is in cents -->
+                {{ (v.payment.amount / 100).toFixed(2) }} UAH
+              </span>
             </div>
             <ViewerPaymentReceipt
               :file-id="v.payment.fileId"
