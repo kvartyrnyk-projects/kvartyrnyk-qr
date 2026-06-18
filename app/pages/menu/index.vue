@@ -70,8 +70,8 @@ const saveEntries = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: unknown) {
-    saveError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка збереження";
+  } catch (err) {
+    saveError.value = err?.data?.message ?? "Помилка збереження";
   } finally {
     saving.value = false;
   }
@@ -101,8 +101,8 @@ const pay = async () => {
       headers: getHeaders(),
     });
     await navigateTo(`/receipt/${receipt.value.id}`);
-  } catch (err: unknown) {
-    payError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка оплати";
+  } catch (err) {
+    payError.value = err?.data?.message ?? "Помилка оплати";
   } finally {
     paying.value = false;
   }
@@ -128,7 +128,9 @@ const pay = async () => {
     <template v-else-if="receipt">
       <UCard>
         <div>
-          <p class="font-semibold text-lg">Барне замовлення #{{ receipt.id }}</p>
+          <p class="font-semibold text-lg">
+            Барне замовлення #{{ receipt.id }}
+          </p>
           <p class="text-sm text-annotation">
             {{
               receipt.status === "UNPAID"
@@ -178,21 +180,12 @@ const pay = async () => {
               Разом: {{ formatPrice(runningTotal) }}
             </p>
             <div class="flex gap-2">
-              <UButton
-                variant="outline"
-                :loading="saving"
-                @click="saveEntries"
-              >
-                <UIcon name="i-heroicons-check" aria-hidden="true" />
+              <UButton variant="outline" :loading="saving" @click="saveEntries">
+                <UIcon name="i-heroicons-check" class="size-5" aria-hidden="true" />
                 <span class="sr-only">Зберегти</span>
               </UButton>
-              <UButton
-                class="flex-1"
-                :disabled="!hasItems"
-                :loading="paying"
-                @click="pay"
-              >
-                <UIcon name="i-heroicons-credit-card" class="mr-1" aria-hidden="true" />
+              <UButton :disabled="!hasItems" :loading="paying" @click="pay">
+                <UIcon name="i-heroicons-credit-card" class="size-5 mr-1" aria-hidden="true" />
                 Сплатити
               </UButton>
             </div>
@@ -226,7 +219,8 @@ const pay = async () => {
 
         <UCard>
           <p class="text-sm text-annotation">
-            Посилання на оплату надіслано у Telegram. Після оплати надішліть скріншот боту — бармен підтвердить.
+            Посилання на оплату надіслано у Telegram. Після оплати надішліть
+            скріншот боту — бармен підтвердить.
           </p>
         </UCard>
       </template>

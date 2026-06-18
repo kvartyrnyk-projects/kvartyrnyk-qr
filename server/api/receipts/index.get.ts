@@ -7,6 +7,8 @@ interface ReceiptSummary {
   paymentMethod: PaymentMethod | null;
   total: number;
   guestName: string;
+  username: string | null;
+  phone: string | null;
 }
 
 export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
@@ -24,17 +26,23 @@ export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
   if (isBartender) {
     const rows = await sql<{
       id: number;
-      status: string;
-      payment_method: string | null;
+      status: ReceiptStatus;
+      paymentMethod: PaymentMethod | null;
       total: number;
-      full_name: string;
+      guestName: string;
+      username: string | null;
+      phone: string | null;
+      qr: string;
     }[]>`
       SELECT
         r.id,
         r.status,
-        r.payment_method,
+        r.payment_method AS paymentMethod,
         r.total,
-        u.full_name
+        u.full_name AS guestName,
+        u.username,
+        u.phone,
+        reg.qr_token AS qr
       FROM receipts r
       JOIN registrations reg ON r.registration_id = reg.id
       JOIN events e ON reg.event_id = e.id
@@ -42,28 +50,31 @@ export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
       WHERE e.status NOT IN ('FINISHED', 'CANCELLED')
       ORDER BY r.updated_at DESC
     `;
-    return rows.map((r) => ({
-      id: r.id,
-      status: r.status as ReceiptStatus,
-      paymentMethod: r.payment_method as PaymentMethod | null,
-      total: Number(r.total),
-      guestName: r.full_name,
+    return rows.map(({ total, ...rest }) => ({
+      total: Number(total),
+      ...rest,
     }));
   }
 
   const rows = await sql<{
     id: number;
-    status: string;
-    payment_method: string | null;
+    status: ReceiptStatus;
+    paymentMethod: PaymentMethod | null;
     total: number;
-    full_name: string;
+    guestName: string;
+    qr: string;
+    username: string | null;
+    phone: string | null;
   }[]>`
     SELECT
       r.id,
       r.status,
-      r.payment_method,
+      r.payment_method AS paymentMethod,
       r.total,
-      u.full_name
+      u.full_name AS guestName,
+      reg.qr_token AS qr,
+      u.username,
+      u.phone
     FROM receipts r
     JOIN registrations reg ON r.registration_id = reg.id
     JOIN events e ON reg.event_id = e.id
@@ -72,11 +83,8 @@ export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
       AND e.status NOT IN ('FINISHED', 'CANCELLED')
     ORDER BY r.updated_at DESC
   `;
-  return rows.map((r) => ({
-    id: r.id,
-    status: r.status as ReceiptStatus,
-    paymentMethod: r.payment_method as PaymentMethod | null,
-    total: Number(r.total),
-    guestName: r.full_name,
+  return rows.map(({ total, ...rest }) => ({
+    total: Number(total),
+    ...rest,
   }));
 });

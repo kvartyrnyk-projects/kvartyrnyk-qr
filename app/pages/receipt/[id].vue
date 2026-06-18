@@ -15,6 +15,7 @@ const statusLabel = computed(() => {
     case "UNPAID": return "В процесі";
     case "AWAITING_PAYMENT": return "Очікується оплата";
     case "PAID": return "Оплачено";
+    case "FINISHED": return "Оброблено";
     case "CANCELLED": return "Скасовано";
     default: return "";
   }

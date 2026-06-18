@@ -50,10 +50,10 @@ const runningTotal = computed(() => {
 const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
 
 const getHeaders = () => {
-  const Authorization = retrieveRawInitData()
-  if (!Authorization) return
-  return { Authorization }
-}
+  const Authorization = retrieveRawInitData();
+  if (!Authorization) return;
+  return { Authorization };
+};
 
 const saving = ref(false);
 const saveError = ref<string | null>(null);
@@ -76,8 +76,8 @@ const saveEntries = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: unknown) {
-    saveError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка збереження";
+  } catch (err) {
+    saveError.value = err?.data?.message ?? "Помилка збереження";
   } finally {
     saving.value = false;
   }
@@ -116,8 +116,8 @@ const requestPayment = async (method: "CARD" | "CASH") => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: unknown) {
-    requestError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка надсилання запиту";
+  } catch (err) {
+    requestError.value = err?.data?.message ?? "Помилка надсилання запиту";
   } finally {
     requestingPayment.value = false;
   }
@@ -136,8 +136,8 @@ const confirmPayment = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: unknown) {
-    confirmError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка підтвердження";
+  } catch (err) {
+    confirmError.value = err?.data?.message ?? "Помилка підтвердження";
   } finally {
     confirming.value = false;
   }
@@ -156,8 +156,8 @@ const editReceipt = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: unknown) {
-    editError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка редагування";
+  } catch (err) {
+    editError.value = err?.data?.message ?? "Помилка редагування";
   } finally {
     editing.value = false;
   }
@@ -176,10 +176,30 @@ const cancelReceipt = async () => {
       headers: getHeaders(),
     });
     await refreshReceipt();
-  } catch (err: unknown) {
-    cancelError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка скасування";
+  } catch (err) {
+    cancelError.value = err?.data?.message ?? "Помилка скасування";
   } finally {
     cancelling.value = false;
+  }
+};
+
+const finishing = ref(false);
+const finishError = ref<string | null>(null);
+
+const finishReceipt = async () => {
+  if (!receipt.value) return;
+  finishing.value = true;
+  finishError.value = null;
+  try {
+    await $fetch(`/api/receipt/${receipt.value.id}/finish`, {
+      method: "POST",
+      headers: getHeaders(),
+    });
+    await refreshReceipt();
+  } catch (err) {
+    finishError.value = err?.data?.message ?? "Помилка";
+  } finally {
+    finishing.value = false;
   }
 };
 
@@ -196,8 +216,8 @@ const createNewOrder = async () => {
     });
     Object.keys(counts).forEach((k) => delete counts[Number(k)]);
     await refreshReceipt();
-  } catch (err: unknown) {
-    createNewError.value = (err as { data?: { message?: string } })?.data?.message ?? "Помилка створення замовлення";
+  } catch (err) {
+    createNewError.value = err?.data?.message ?? "Помилка створення замовлення";
   } finally {
     creatingNew.value = false;
   }
@@ -224,7 +244,9 @@ const createNewOrder = async () => {
       <!-- Payment method modal -->
       <UModal v-model:open="paymentModalOpen" title="Спосіб оплати">
         <template #body>
-          <p class="text-sm text-annotation mb-4">Оберіть спосіб оплати для замовлення #{{ receipt.id }}</p>
+          <p class="text-sm text-annotation mb-4">
+            Оберіть спосіб оплати для замовлення #{{ receipt.id }}
+          </p>
           <div class="flex gap-3">
             <UButton
               class="flex-1"
@@ -232,7 +254,7 @@ const createNewOrder = async () => {
               :loading="requestingPayment"
               @click="requestPayment('CASH')"
             >
-              <UIcon name="i-heroicons-banknotes" class="mr-1" aria-hidden="true" />
+              <UIcon name="i-heroicons-banknotes" class="size-5 mr-1" aria-hidden="true" />
               <span>Готівка</span>
             </UButton>
             <UButton
@@ -240,7 +262,7 @@ const createNewOrder = async () => {
               :loading="requestingPayment"
               @click="requestPayment('CARD')"
             >
-              <UIcon name="i-heroicons-credit-card" class="mr-1" aria-hidden="true" />
+              <UIcon name="i-heroicons-credit-card" class="size-5 mr-1" aria-hidden="true" />
               <span>Картка</span>
             </UButton>
           </div>
@@ -250,7 +272,9 @@ const createNewOrder = async () => {
       <UCard>
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-semibold text-lg">Замовлення #{{ receipt.id }} для {{ receipt.guestName }}</p>
+            <p class="font-semibold text-lg">
+              Замовлення #{{ receipt.id }} для {{ receipt.guestName }}
+            </p>
             <p class="text-sm text-annotation">
               {{
                 receipt.status === "UNPAID"
@@ -259,7 +283,9 @@ const createNewOrder = async () => {
                     ? "Очікується оплата"
                     : receipt.status === "PAID"
                       ? "Оплачено"
-                      : "Скасовано"
+                      : receipt.status === "FINISHED"
+                        ? "Оброблено"
+                        : "Скасовано"
               }}
               <span v-if="receipt.paymentMethod" class="ml-1">
                 ({{ receipt.paymentMethod === "CASH" ? "готівка" : "картка" }})
@@ -272,7 +298,7 @@ const createNewOrder = async () => {
             variant="ghost"
             @click="refreshReceipt"
           >
-            <UIcon name="i-heroicons-arrow-path" aria-hidden="true" />
+            <UIcon name="i-heroicons-arrow-path" class="size-5" aria-hidden="true" />
             <span class="sr-only">Оновити</span>
           </UButton>
         </div>
@@ -320,7 +346,7 @@ const createNewOrder = async () => {
                 :loading="cancelling"
                 @click="cancelReceipt"
               >
-                <UIcon name="i-heroicons-x-mark" aria-hidden="true" />
+                <UIcon name="i-heroicons-x-mark" class="size-5" aria-hidden="true" />
                 <span class="sr-only">Скасувати</span>
               </UButton>
               <UButton
@@ -330,11 +356,8 @@ const createNewOrder = async () => {
               >
                 Надіслати запит оплати
               </UButton>
-              <UButton
-                :loading="saving"
-                @click="saveEntries"
-              >
-                <UIcon name="i-heroicons-check" aria-hidden="true" />
+              <UButton :loading="saving" @click="saveEntries">
+                <UIcon name="i-heroicons-check" class="size-5" aria-hidden="true" />
                 <span class="sr-only">Зберегти</span>
               </UButton>
             </div>
@@ -368,7 +391,9 @@ const createNewOrder = async () => {
 
         <!-- Cash path: no screenshot needed -->
         <template v-if="receipt.paymentMethod === 'CASH'">
-          <p v-if="confirmError" class="text-sm text-error">{{ confirmError }}</p>
+          <p v-if="confirmError" class="text-sm text-error">
+            {{ confirmError }}
+          </p>
           <p v-if="editError" class="text-sm text-error">{{ editError }}</p>
           <p v-if="cancelError" class="text-sm text-error">{{ cancelError }}</p>
 
@@ -379,22 +404,14 @@ const createNewOrder = async () => {
               :loading="cancelling"
               @click="cancelReceipt"
             >
-              <UIcon name="i-heroicons-x-mark" aria-hidden="true" />
+              <UIcon name="i-heroicons-x-mark" class="size-5" aria-hidden="true" />
               <span class="sr-only">Скасувати</span>
             </UButton>
-            <UButton
-              variant="outline"
-              :loading="editing"
-              @click="editReceipt"
-            >
-              <UIcon name="i-heroicons-pencil" aria-hidden="true" />
+            <UButton variant="outline" :loading="editing" @click="editReceipt">
+              <UIcon name="i-heroicons-pencil" class="size-5" aria-hidden="true" />
               <span class="sr-only">Редагувати</span>
             </UButton>
-            <UButton
-              class="flex-1"
-              :loading="confirming"
-              @click="confirmPayment"
-            >
+            <UButton :loading="confirming" @click="confirmPayment">
               Підтвердити отримання готівки
             </UButton>
           </div>
@@ -420,7 +437,9 @@ const createNewOrder = async () => {
             </UCard>
           </template>
 
-          <p v-if="confirmError" class="text-sm text-error">{{ confirmError }}</p>
+          <p v-if="confirmError" class="text-sm text-error">
+            {{ confirmError }}
+          </p>
           <p v-if="editError" class="text-sm text-error">{{ editError }}</p>
           <p v-if="cancelError" class="text-sm text-error">{{ cancelError }}</p>
 
@@ -431,20 +450,15 @@ const createNewOrder = async () => {
               :loading="cancelling"
               @click="cancelReceipt"
             >
-              <UIcon name="i-heroicons-x-mark" aria-hidden="true" />
+              <UIcon name="i-heroicons-x-mark" class="size-5" aria-hidden="true" />
               <span class="sr-only">Скасувати</span>
             </UButton>
-            <UButton
-              variant="outline"
-              :loading="editing"
-              @click="editReceipt"
-            >
-              <UIcon name="i-heroicons-pencil" aria-hidden="true" />
+            <UButton variant="outline" :loading="editing" @click="editReceipt">
+              <UIcon name="i-heroicons-pencil" class="size-5" aria-hidden="true" />
               <span class="sr-only">Редагувати</span>
             </UButton>
             <UButton
               v-if="receipt.paymentFileId"
-              class="flex-1"
               :loading="confirming"
               @click="confirmPayment"
             >
@@ -478,6 +492,52 @@ const createNewOrder = async () => {
           </div>
         </UCard>
 
+        <p v-if="finishError" class="text-sm text-error">{{ finishError }}</p>
+        <p v-if="createNewError" class="text-sm text-error">
+          {{ createNewError }}
+        </p>
+
+        <div class="flex gap-2">
+          <UButton
+            variant="ghost"
+            :loading="creatingNew"
+            @click="createNewOrder"
+          >
+            <UIcon name="i-heroicons-plus" class="size-5 mr-1" aria-hidden="true" />
+            <span class="sr-only">Нове замовлення</span>
+            Нове замовлення
+          </UButton>
+          <UButton :loading="finishing" @click="finishReceipt">
+            <UIcon name="i-heroicons-check-circle" class="size-5 mr-1" aria-hidden="true" />
+            Оброблено
+          </UButton>
+        </div>
+      </template>
+
+      <!-- FINISHED: terminal state -->
+      <template v-else-if="receipt.status === 'FINISHED'">
+        <UCard>
+          <template #header>
+            <h2 class="font-semibold">Оброблено ✓</h2>
+          </template>
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="entry in receipt.entries"
+              :key="entry.productId"
+              class="flex justify-between text-sm text-annotation"
+            >
+              <span>{{ entry.productName }} × {{ entry.unitCount }}</span>
+              <span>{{ formatPrice(entry.subtotal) }}</span>
+            </div>
+            <div
+              class="border-t border-gray-200 dark:border-neutral-700 pt-2 flex justify-between font-semibold text-annotation"
+            >
+              <span>Разом</span>
+              <span>{{ formatPrice(receipt.total) }}</span>
+            </div>
+          </div>
+        </UCard>
+
         <p v-if="createNewError" class="text-sm text-error">
           {{ createNewError }}
         </p>
@@ -488,8 +548,7 @@ const createNewOrder = async () => {
           :loading="creatingNew"
           @click="createNewOrder"
         >
-          <UIcon name="i-heroicons-plus" aria-hidden="true" />
-          <span class="sr-only">Нове замовлення</span>
+          <UIcon name="i-heroicons-plus" class="size-5 mr-1" aria-hidden="true" />
           Нове замовлення
         </UButton>
       </template>
@@ -528,7 +587,7 @@ const createNewOrder = async () => {
           :loading="creatingNew"
           @click="createNewOrder"
         >
-          <UIcon name="i-heroicons-plus" aria-hidden="true" />
+          <UIcon name="i-heroicons-plus" class="size-5 mr-1" aria-hidden="true" />
           Нове замовлення
         </UButton>
       </template>

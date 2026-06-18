@@ -16,7 +16,7 @@ export interface ReceiptEntryDetail {
   subtotal: number; // cents
 }
 
-export type ReceiptStatus = "UNPAID" | "AWAITING_PAYMENT" | "PAID" | "CANCELLED";
+export type ReceiptStatus = "UNPAID" | "AWAITING_PAYMENT" | "PAID" | "CANCELLED" | "FINISHED";
 export type PaymentMethod = "CARD" | "CASH";
 
 export interface ReceiptResponse {
