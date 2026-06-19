@@ -6,7 +6,7 @@ watch(authStatus, (s) => {
 
 const router = useRouter();
 
-const onScanned = (qr: string) => router.push(`/scan/${qr}`);
+const onScanned = (qr: string) => router.push(`/bartender/${qr}`);
 const onError = (err: string) => console.error("QR scan error:", err);
 </script>
 
