@@ -70,8 +70,8 @@ const handlePrint = () => {
         <p class="text-xs text-gray-600 dark:text-gray-400">Друзі</p>
       </div>
       <div>
-        <p class="text-2xl font-bold">{{ event.maxSlots }}</p>
-        <p class="text-xs text-gray-600 dark:text-gray-400">Місць</p>
+        <p class="text-2xl font-bold">{{ event.maxSlots ?? "∞" }}</p>
+        <p class="text-xs text-gray-600 dark:text-gray-400">місць</p>
       </div>
     </div>
 
@@ -83,7 +83,7 @@ const handlePrint = () => {
         <div
           class="h-2 bg-primary transition-all"
           :style="{
-            width: `${Math.min(100, (event.registrationsCount / event.maxSlots) * 100)}%`,
+            width: `${Math.min(100, (event.registrationsCount / (event.maxSlots ?? 1)) * 100)}%`,
           }"
         />
         <div
@@ -94,16 +94,16 @@ const handlePrint = () => {
               100 -
                 Math.min(
                   100,
-                  (event.registrationsCount / event.maxSlots) * 100,
+                  (event.registrationsCount / (event.maxSlots ?? 1)) * 100,
                 ),
-              (event.friendsCount / event.maxSlots) * 100,
+              (event.friendsCount / (event.maxSlots ?? 1)) * 100,
             )}%`,
           }"
         />
       </div>
       <p class="mt-1 text-right text-xs text-gray-600 dark:text-gray-400">
         {{ event.registrationsCount + event.friendsCount }} /
-        {{ event.maxSlots }} місць
+        {{ event.maxSlots ?? "Необмежена кількість" }} місць
       </p>
     </div>
   </UCard>

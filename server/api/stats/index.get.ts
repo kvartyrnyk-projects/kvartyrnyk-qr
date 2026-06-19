@@ -13,7 +13,7 @@ interface EventSummaryDbRow {
   name: string;
   status: string;
   starts_at: Date;
-  max_slots: number;
+  max_slots: number | null;
   registrations_count: number;
   checked_in_count: number;
   confirmed_payments: number;

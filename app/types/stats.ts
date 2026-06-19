@@ -33,7 +33,7 @@ export interface EventSummaryRow {
   name: string;
   status: EventStatus;
   startsAt: string;
-  maxSlots: number;
+  maxSlots: number | null;
   registrationsCount: number;
   checkedInCount: number;
   confirmedPayments: number;
@@ -54,7 +54,7 @@ export interface EventDetail {
   name: string;
   location: string | null;
   startsAt: string;
-  maxSlots: number;
+  maxSlots: number | null;
   status: EventStatus;
   registrationsCount: number;
   checkedInCount: number;

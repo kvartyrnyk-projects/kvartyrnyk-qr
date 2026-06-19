@@ -12,7 +12,7 @@ interface EventDbRow {
   name: string;
   location: string | null;
   starts_at: Date;
-  max_slots: number;
+  max_slots: number | null;
   status: string;
   price: number;
 }
