@@ -60,6 +60,7 @@ export interface EventDetail {
   checkedInCount: number;
   friendsCount: number;
   checkedInFriendsCount: number;
+  ticketPrice: number;
 }
 
 export interface StatsEventResponse {

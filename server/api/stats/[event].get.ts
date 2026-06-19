@@ -14,6 +14,7 @@ interface EventDbRow {
   starts_at: Date;
   max_slots: number;
   status: string;
+  price: number;
 }
 
 interface VisitorDbRow {
@@ -47,7 +48,7 @@ export default defineEventHandler(
     }
 
     const [eventRow] = await sql<EventDbRow[]>`
-      SELECT id, name, location, starts_at, max_slots, status
+      SELECT id, name, location, starts_at, max_slots, status, price
       FROM events
       WHERE id = ${eventId}
     `;
@@ -137,6 +138,7 @@ export default defineEventHandler(
         checkedInCount,
         friendsCount,
         checkedInFriendsCount,
+        ticketPrice: eventRow.price,
       },
       visitors,
     };

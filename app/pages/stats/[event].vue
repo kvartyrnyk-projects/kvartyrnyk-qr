@@ -49,7 +49,7 @@ const { data, status, error } = useClientFetch<StatsEventResponse>(
         <h2 class="font-semibold mb-3">
           Відвідувачі ({{ data.visitors.length }})
         </h2>
-        <StatsVisitorAccordion :visitors="data.visitors" />
+        <StatsVisitorAccordion :visitors="data.visitors" :ticket-price="data.event.ticketPrice" />
       </div>
 
       <StatsPrintList

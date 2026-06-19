@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { VisitorRow } from "~/types/stats";
 
-const { visitors } = defineProps<{ visitors: VisitorRow[] }>();
+const { visitors, ticketPrice } = defineProps<{
+  visitors: VisitorRow[];
+  ticketPrice: number;
+}>();
 
 const paymentStatusLabel: Record<string, string> = {
   PENDING: "Очікує",
@@ -130,7 +133,7 @@ const visitorLabel = (v: VisitorRow) =>
               :mimetype="v.payment.mimetype"
             />
           </div>
-          <p v-else class="text-sm text-gray-600 dark:text-gray-400">
+          <p v-else-if="ticketPrice > 0" class="text-sm text-gray-600 dark:text-gray-400">
             Оплата не завантажена
           </p>
         </div>
