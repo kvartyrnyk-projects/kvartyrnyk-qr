@@ -71,7 +71,13 @@ const finishReceipt = async (id: number) => {
 
 <template>
   <div class="flex flex-col gap-6 p-4 w-full max-w-md mx-auto">
-    <h1 class="text-xl font-bold">Замовлення</h1>
+    <div class="flex flex-row justify-between">
+      <h1 class="text-xl font-bold">Замовлення</h1>
+      <UButton size="sm" @click="navigateTo('/bartender')">
+        <UIcon name="i-heroicons-plus" class="size-5" aria-hidden="true" />
+        Створити
+      </UButton>
+    </div>
 
     <div
       v-if="fetchStatus === 'idle' || fetchStatus === 'pending'"

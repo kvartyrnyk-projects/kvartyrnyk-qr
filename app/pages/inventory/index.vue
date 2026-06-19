@@ -107,7 +107,10 @@ const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
   <div class="flex flex-col gap-6 p-4 w-full max-w-3xl mx-auto">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold">Інвентар</h1>
-      <UButton @click="openCreate">Додати продукт</UButton>
+      <UButton size="sm" @click="openCreate">
+        <UIcon name="i-heroicons-plus" class="size-5" aria-hidden="true" />
+        Додати
+      </UButton>
     </div>
 
     <div
@@ -128,12 +131,12 @@ const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
           v-model="form.name"
           placeholder="Назва *"
           class="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-        />
+        >
         <input
           v-model="form.unit"
           placeholder="Одиниця (шт, мл, порція) *"
           class="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-        />
+        >
         <input
           v-model="form.price"
           type="number"
@@ -141,17 +144,17 @@ const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
           step="0.01"
           placeholder="Ціна у гривнях *"
           class="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-        />
+        >
         <input
           v-model="form.description"
           placeholder="Опис (необов'язково)"
           class="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-        />
+        >
         <input
           v-model="form.tags"
           placeholder="Теги через кому (необов'язково)"
           class="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-        />
+        >
         <div class="flex gap-2 justify-end">
           <UButton
             variant="ghost"
@@ -193,7 +196,8 @@ const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
           </div>
           <div class="flex gap-2 shrink-0">
             <UButton size="sm" variant="ghost" @click="openEdit(product)">
-              Ред.
+               <UIcon name="i-heroicons-pencil-square" class="size-5" aria-hidden="true" />
+               <span class="sr-only">Редагувати</span>
             </UButton>
             <UButton
               size="sm"
@@ -201,7 +205,8 @@ const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
               variant="ghost"
               @click="deleteProduct(product.id)"
             >
-              Вид.
+               <UIcon name="i-heroicons-trash" class="size-5" aria-hidden="true" />
+               <span class="sr-only">Видалити</span>
             </UButton>
           </div>
         </div>

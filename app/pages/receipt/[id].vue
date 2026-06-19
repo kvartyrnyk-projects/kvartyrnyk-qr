@@ -8,6 +8,8 @@ const { data: receipt, status, error } = useClientFetch<ReceiptResponse>(
   () => `/api/receipt/${id.value}`,
 );
 
+const { isBartender } = useAuth();
+
 const formatPrice = (cents: number) => `${(cents / 100).toFixed(2)} грн`;
 
 const statusLabel = computed(() => {
@@ -48,6 +50,16 @@ const statusColor = computed(() => {
     </div>
 
     <template v-else-if="receipt">
+      <div :class="{ hidden: !isBartender }" class="flex items-center gap-2">
+        <UButton
+          to="/orders"
+          icon="i-lucide-arrow-left"
+          variant="ghost"
+          size="sm"
+          label="В меню"
+        />
+      </div>
+
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">

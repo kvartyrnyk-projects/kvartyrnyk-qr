@@ -269,6 +269,16 @@ const createNewOrder = async () => {
         </template>
       </UModal>
 
+      <div class="flex items-center gap-2">
+        <UButton
+          to="/orders"
+          icon="i-lucide-arrow-left"
+          variant="ghost"
+          size="sm"
+          label="В меню"
+        />
+      </div>
+
       <UCard>
         <div class="flex items-center justify-between">
           <div>
