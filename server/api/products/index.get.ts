@@ -1,9 +1,9 @@
 import { sql } from "~~/server/utils/db";
-import { isInRole } from "~~/server/utils/auth";
+import { getCurrentUser } from "~~/server/utils/auth";
 import type { Product } from "~/types/receipt";
 
 export default defineEventHandler(async (event): Promise<Product[]> => {
-  await isInRole(event, ["BARTENDER", "SUDO"]);
+  await getCurrentUser(event);
 
   const rows = await sql<
     {

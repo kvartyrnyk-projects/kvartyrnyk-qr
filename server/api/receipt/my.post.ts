@@ -1,17 +1,11 @@
 import { sql } from "~~/server/utils/db";
+import { getCurrentUser } from "~~/server/utils/auth";
 import { findOrCreateUnpaidReceipt } from "~~/server/utils/receipt";
 import { fetchReceipt } from "./upsert-for/[qr].post";
 import type { ReceiptResponse } from "~/types/receipt";
 
 export default defineEventHandler(async (event): Promise<ReceiptResponse> => {
-  const telegramUserId = event.context.telegramUserId as number;
-
-  const [dbUser] = await sql<{ id: number }[]>`
-    SELECT id FROM users WHERE telegram_id = ${telegramUserId}
-  `;
-  if (!dbUser) {
-    throw createError({ statusCode: 403, message: "Доступ заборонено" });
-  }
+  const dbUser = await getCurrentUser(event);
 
   // Find the most relevant active event, mirroring findCurrentEvent() priority:
   // ONGOING first (event is happening), then REGISTRATION_OPEN, then REGISTRATION_CLOSED.

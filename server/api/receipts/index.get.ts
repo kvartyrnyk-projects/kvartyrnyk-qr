@@ -1,4 +1,5 @@
 import { sql } from "~~/server/utils/db";
+import { getCurrentUser, isBartender } from "~~/server/utils/auth";
 import type { ReceiptStatus, PaymentMethod } from "~/types/receipt";
 
 interface ReceiptSummary {
@@ -12,18 +13,9 @@ interface ReceiptSummary {
 }
 
 export default defineEventHandler(async (event): Promise<ReceiptSummary[]> => {
-  const telegramUserId = event.context.telegramUserId as number;
+  const dbUser = await getCurrentUser(event);
 
-  const [dbUser] = await sql<{ id: number; role: string }[]>`
-    SELECT id, role FROM users WHERE telegram_id = ${telegramUserId}
-  `;
-  if (!dbUser) {
-    throw createError({ statusCode: 403, message: "Доступ заборонено" });
-  }
-
-  const isBartender = dbUser.role === "BARTENDER" || dbUser.role === "SUDO";
-
-  if (isBartender) {
+  if (isBartender(dbUser)) {
     const rows = await sql<{
       id: number;
       status: ReceiptStatus;
